@@ -56,3 +56,4 @@ mkdocstrings
 mkdocs-git-revision-date-localized-plugin
 mkdocs-git-revision-date-plugin
 mkdocs-jupyter
+mkdocstrings_handlers
