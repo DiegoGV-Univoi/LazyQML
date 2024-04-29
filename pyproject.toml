@@ -1,0 +1,78 @@
+[project]
+name = "lazyqml"
+version = "0.0.1"
+dynamic = [
+    "dependencies",
+]
+description = "LazyQML benchmarking utility to test quantum machine learning models."
+readme = "README.md"
+requires-python = "==3.9"
+keywords = [
+    "lazyqml",
+]
+license = {text = "MIT License"}
+authors = [
+  {name = "Diego García Vega", email = "garciavdiego@uniovi.es"},
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.9"
+]
+
+[project.entry-points."console_scripts"]
+lazyqml = "lazyqml.cli:main"
+
+[project.optional-dependencies]
+all = [
+    "lazyqml[extra]",
+]
+
+extra = [
+    "pandas",
+]
+
+
+[tool]
+[tool.setuptools.packages.find]
+include = ["lazyqml*"]
+exclude = ["docs*"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+
+[tool.distutils.bdist_wheel]
+universal = true
+
+
+[tool.bumpversion]
+current_version = "0.0.1"
+commit = true
+tag = true
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "lazyqml/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+
+[tool.flake8]
+exclude = [
+    "docs",
+]
+max-line-length = 88
+
+
+[project.urls]
+Homepage = "https://github.com/DiegoGV-Uniovi/lazyqml"
+
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
