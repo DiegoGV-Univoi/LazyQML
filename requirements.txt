@@ -50,4 +50,4 @@ wheel==0.41.2
 xlrd==2.0.1
 zipp==3.18.1
 codespell
-mkdocs
+mkdocs-material
