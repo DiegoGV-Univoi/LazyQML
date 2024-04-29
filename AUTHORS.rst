@@ -10,4 +10,5 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Fernando Álvaro Plou Llorente <ploufernando@uniovi.es>
+* Alejandro Leal Castaño <lealcalejandro@uniovi.es>
