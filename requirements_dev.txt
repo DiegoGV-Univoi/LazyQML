@@ -51,3 +51,4 @@ xlrd==2.0.1
 zipp==3.18.1
 codespell
 mkdocs
+mkdocstrings
