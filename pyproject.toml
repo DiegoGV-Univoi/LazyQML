@@ -15,7 +15,7 @@ authors = [
   {name = "Diego García Vega", email = "garciavdiego@uniovi.es"},
 ]
 classifiers = [
-    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3.9"
