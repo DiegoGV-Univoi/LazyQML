@@ -41,8 +41,8 @@ plugins:
     - mkdocstrings
     - git-revision-date
     - git-revision-date-localized:
-          enable_creation_date: true
-          type: timeago
+          #enable_creation_date: true
+          #type: timeago
     # - pdf-export
     - mkdocs-jupyter:
           include_source: True
