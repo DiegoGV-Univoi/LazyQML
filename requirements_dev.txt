@@ -54,3 +54,4 @@ mkdocs
 mkdocs-material
 mkdocstrings
 mkdocs-git-revision-date-localized-plugin
+mkdocs-jupyter
