@@ -41,6 +41,10 @@ plugins:
     - mkdocstrings
     - git-revision-date
     - git-revision-date-localized:
+      exclude:
+        - blog/archive/*
+        - blog/category/*
+    # - git-revision-date-localized:
           #enable_creation_date: true
           #type: timeago
     # - pdf-export
