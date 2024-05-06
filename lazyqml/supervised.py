@@ -6,7 +6,7 @@
  Import modules
 """
 
-from common import *
+from .common import *
 
 """
  Classifiers
