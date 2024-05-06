@@ -350,20 +350,7 @@ class QuantumClassifier():
         return scores, predictions_df if self.predictions is True else scores
 
 
-from sklearn.datasets import load_breast_cancer, load_iris
-from sklearn.model_selection import train_test_split
-data = load_iris()
-X = data.data
-y = data.target
-print(y)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
-
-q = QuantumClassifier(nqubits=4,classifiers=["qnn_bag"],verbose=0)
-
-scores = q.fit(X_train, X_test, y_train, y_test)
-
-print(scores)
 
 
 

@@ -5,17 +5,39 @@
 
 import unittest
 
-from lazyqml import lazyqml
+from lazyqml.supervised import QuantumClassifier
 
 
 class TestLazyqml(unittest.TestCase):
     """Tests for `lazyqml` package."""
 
-    def setUp(self):
-        """Set up test fixtures, if any."""
+    def test_multiclass(self):
+        from sklearn.datasets import load_breast_cancer, load_iris
+        from sklearn.model_selection import train_test_split
+        data = load_iris()
+        X = data.data
+        y = data.target
+        print(y)
 
-    def tearDown(self):
-        """Tear down test fixtures, if any."""
+        X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
-    def test_000_something(self):
-        """Test something."""
+        q = QuantumClassifier(nqubits=4,classifiers=["qnn_bag"],verbose=0)
+
+        scores = q.fit(X_train, X_test, y_train, y_test)
+
+        print(scores)
+    def test_binary(self):
+        from sklearn.datasets import load_breast_cancer, load_iris
+        from sklearn.model_selection import train_test_split
+        data = load_breast_cancer()
+        X = data.data
+        y = data.target
+        print(y)
+
+        X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
+
+        q = QuantumClassifier(nqubits=4,classifiers=["qnn_bag"],verbose=0)
+
+        scores = q.fit(X_train, X_test, y_train, y_test)
+
+        print(scores)
