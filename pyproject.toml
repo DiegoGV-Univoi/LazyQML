@@ -12,7 +12,7 @@ keywords = [
 ]
 license = {text = "MIT License"}
 authors = [
-  {name = "Diego García Vega", email = "garciavdiego@uniovi.es"},
+  {name = "Diego García Vega, Fernando Álvaro Plou Llorente, Alejandro Leal Castaño", email = "garciavdiego@uniovi.es, ploufernando@uniovi.es, lealcalejandro@uniovi.es"},
 ]
 classifiers = [
     "Intended Audience :: Science/Research",
