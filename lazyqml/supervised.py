@@ -6,7 +6,9 @@
  Import modules
 """
 
-from .common import *
+from common import *
+import warnings
+warnings.filterwarnings("ignore")
 
 """
  Classifiers
@@ -73,7 +75,93 @@ class QuantumClassifier():
     >>> models,predictions = clf.fit(X_train, X_test, y_train, y_test)
     >>> model_dictionary = clf.provide_models(X_train,X_test,y_train,y_test)
     >>> models
-    >>> .
+    | Model       | Embedding           | Ansatz             |   Accuracy |   Balanced Accuracy | ROC AUC   |   F1 Score |   Time taken |
+    |:------------|:--------------------|:-------------------|-----------:|--------------------:|:----------|-----------:|-------------:|
+    | qsvm        | rx_embedding        |                    |   0.955556 |            0.960784 |           |  0.956187  |      3.00024 |
+    | qsvm        | rz_embedding        |                    |   0.955556 |            0.960784 |           |  0.956187  |      2.93275 |
+    | qsvm        | ry_embedding        |                    |   0.955556 |            0.960784 |           |  0.956187  |      2.98143 |
+    | qnn         | amplitude_embedding | hardware_efficient |   0.733333 |            0.754248 |           |  0.723993  |     11.207   |
+    | qnn         | ZZ_embedding        | two_local          |   0.733333 |            0.754248 |           |  0.723993  |      2.9692  |
+    | qnn         | rz_embedding        | two_local          |   0.733333 |            0.754248 |           |  0.723993  |      2.94752 |
+    | qnn         | rx_embedding        | two_local          |   0.733333 |            0.754248 |           |  0.723993  |      3.07974 |
+    | qnn         | ry_embedding        | two_local          |   0.733333 |            0.754248 |           |  0.723993  |      2.94321 |
+    | qnn         | amplitude_embedding | HPzRx              |   0.733333 |            0.753159 |           |  0.717882  |      2.32015 |
+    | qsvm        | amplitude_embedding |                    |   0.711111 |            0.734641 |           |  0.697691  |      3.99333 |
+    | qnn         | rx_embedding        | HPzRx              |   0.666667 |            0.681699 |           |  0.650911  |      2.2885  |
+    | qnn         | ZZ_embedding        | HPzRx              |   0.666667 |            0.681699 |           |  0.650911  |      2.09387 |
+    | qnn         | rz_embedding        | HPzRx              |   0.666667 |            0.681699 |           |  0.650911  |      2.31533 |
+    | qnn         | ry_embedding        | HPzRx              |   0.666667 |            0.681699 |           |  0.650911  |      2.29481 |
+    | qnn_bag_0.8 | amplitude_embedding | tree_tensor        |   0.622222 |            0.676471 |           |  0.609367  |      5.76442 |
+    | qnn         | amplitude_embedding | two_local          |   0.622222 |            0.663834 |           |  0.610864  |      2.72723 |
+    | qnn_bag_0.8 | amplitude_embedding | HPzRx              |   0.6      |            0.657952 |           |  0.586446  |      3.39962 |
+    | qnn         | rz_embedding        | hardware_efficient |   0.622222 |            0.656209 |           |  0.580471  |     11.0559  |
+    | qnn         | ZZ_embedding        | hardware_efficient |   0.622222 |            0.656209 |           |  0.580471  |     11.0533  |
+    | qnn         | rx_embedding        | hardware_efficient |   0.622222 |            0.656209 |           |  0.580471  |     11.5151  |
+    | qnn         | ry_embedding        | hardware_efficient |   0.622222 |            0.656209 |           |  0.580471  |     11.1438  |
+    | qnn_bag_0.8 | amplitude_embedding | two_local          |   0.6      |            0.644227 |           |  0.589402  |      3.95424 |
+    | qnn_bag_0.8 | amplitude_embedding | hardware_efficient |   0.6      |            0.643137 |           |  0.591346  |     13.716   |
+    | qnn         | ZZ_embedding        | tree_tensor        |   0.6      |            0.636601 |           |  0.547036  |      4.11366 |
+    | qnn         | rz_embedding        | tree_tensor        |   0.6      |            0.636601 |           |  0.547036  |      4.28233 |
+    | qnn         | ry_embedding        | tree_tensor        |   0.6      |            0.636601 |           |  0.547036  |      4.25941 |
+    | qnn         | rx_embedding        | tree_tensor        |   0.6      |            0.636601 |           |  0.547036  |      4.38062 |
+    | qsvm        | ZZ_embedding        |                    |   0.622222 |            0.636383 |           |  0.641239  |      3.32188 |
+    | qnn         | amplitude_embedding | tree_tensor        |   0.577778 |            0.616993 |           |  0.511375  |      4.40494 |
+    | qnn_bag_0.5 | amplitude_embedding | HPzRx              |   0.488889 |            0.508279 |           |  0.48642   |      3.33889 |
+    | qnn_bag_0.5 | amplitude_embedding | tree_tensor        |   0.444444 |            0.471242 |           |  0.410935  |      6.13786 |
+    | qnn_bag_0.5 | amplitude_embedding | hardware_efficient |   0.444444 |            0.471242 |           |  0.410935  |     13.5337  |
+    | qnn_bag_0.5 | amplitude_embedding | two_local          |   0.422222 |            0.452723 |           |  0.372047  |      3.86997 |
+    | qnn_bag_0.8 | rz_embedding        | HPzRx              |   0.4      |            0.399129 |           |  0.423165  |      3.32705 |
+    | qnn_bag_0.8 | ZZ_embedding        | HPzRx              |   0.4      |            0.399129 |           |  0.423165  |      3.50388 |
+    | qnn_bag_0.8 | rx_embedding        | hardware_efficient |   0.4      |            0.399129 |           |  0.423165  |     14.2781  |
+    | qnn_bag_0.8 | ry_embedding        | HPzRx              |   0.4      |            0.399129 |           |  0.423165  |      4.21789 |
+    | qnn_bag_0.8 | ry_embedding        | hardware_efficient |   0.4      |            0.399129 |           |  0.423165  |     13.5693  |
+    | qnn_bag_0.8 | rx_embedding        | HPzRx              |   0.4      |            0.399129 |           |  0.423165  |      3.30752 |
+    | qnn_bag_0.8 | ZZ_embedding        | hardware_efficient |   0.4      |            0.399129 |           |  0.423165  |     13.6998  |
+    | qnn_bag_0.8 | rz_embedding        | hardware_efficient |   0.4      |            0.399129 |           |  0.423165  |     13.7134  |
+    | qnn_bag_0.5 | rz_embedding        | hardware_efficient |   0.333333 |            0.390196 |           |  0.275556  |     13.5766  |
+    | qnn_bag_0.5 | ZZ_embedding        | HPzRx              |   0.333333 |            0.390196 |           |  0.275556  |      3.42679 |
+    | qnn_bag_0.5 | ry_embedding        | two_local          |   0.333333 |            0.390196 |           |  0.275556  |      4.44122 |
+    | qnn_bag_0.5 | rx_embedding        | tree_tensor        |   0.333333 |            0.390196 |           |  0.275556  |      5.3968  |
+    | qnn_bag_0.5 | rx_embedding        | hardware_efficient |   0.333333 |            0.390196 |           |  0.275556  |     13.53    |
+    | qnn_bag_0.5 | ZZ_embedding        | two_local          |   0.333333 |            0.390196 |           |  0.275556  |      4.51936 |
+    | qnn_bag_0.5 | ZZ_embedding        | tree_tensor        |   0.333333 |            0.390196 |           |  0.275556  |      5.96975 |
+    | qnn_bag_0.5 | rz_embedding        | HPzRx              |   0.333333 |            0.390196 |           |  0.275556  |      3.95576 |
+    | qnn_bag_0.5 | ry_embedding        | HPzRx              |   0.333333 |            0.390196 |           |  0.275556  |      3.33663 |
+    | qnn_bag_0.5 | rz_embedding        | tree_tensor        |   0.333333 |            0.390196 |           |  0.275556  |      5.62083 |
+    | qnn_bag_0.5 | rz_embedding        | two_local          |   0.333333 |            0.390196 |           |  0.275556  |      4.47015 |
+    | qnn_bag_0.5 | ZZ_embedding        | hardware_efficient |   0.333333 |            0.390196 |           |  0.275556  |     13.4961  |
+    | qnn_bag_0.5 | ry_embedding        | tree_tensor        |   0.333333 |            0.390196 |           |  0.275556  |      5.50221 |
+    | qnn_bag_0.5 | rx_embedding        | HPzRx              |   0.333333 |            0.390196 |           |  0.275556  |      3.32873 |
+    | qnn_bag_0.5 | ry_embedding        | hardware_efficient |   0.333333 |            0.390196 |           |  0.275556  |     13.6979  |
+    | qnn_bag_0.5 | rx_embedding        | two_local          |   0.333333 |            0.390196 |           |  0.275556  |      4.4354  |
+    | qnn_bag_0.8 | rx_embedding        | tree_tensor        |   0.377778 |            0.38061  |           |  0.410005  |      5.84894 |
+    | qnn_bag_0.8 | ZZ_embedding        | tree_tensor        |   0.377778 |            0.38061  |           |  0.410005  |      5.47199 |
+    | qnn_bag_0.8 | rz_embedding        | tree_tensor        |   0.377778 |            0.38061  |           |  0.410005  |      5.97184 |
+    | qnn_bag_0.8 | ry_embedding        | tree_tensor        |   0.377778 |            0.38061  |           |  0.410005  |      5.88461 |
+    | qnn_bag_0.8 | ry_embedding        | two_local          |   0.355556 |            0.362092 |           |  0.3898    |      3.90912 |
+    | qnn_bag_0.8 | rx_embedding        | two_local          |   0.355556 |            0.362092 |           |  0.3898    |      3.94093 |
+    | qnn_bag_0.8 | rz_embedding        | two_local          |   0.355556 |            0.362092 |           |  0.3898    |      3.89387 |
+    | qnn_bag_0.8 | ZZ_embedding        | two_local          |   0.355556 |            0.362092 |           |  0.3898    |      3.92849 |
+    | qnn_bag_0.3 | ry_embedding        | HPzRx              |   0.222222 |            0.333333 |           |  0.0808081 |      3.34121 |
+    | qnn_bag_0.3 | rx_embedding        | HPzRx              |   0.222222 |            0.333333 |           |  0.0808081 |      3.46206 |
+    | qnn_bag_0.3 | rz_embedding        | HPzRx              |   0.222222 |            0.333333 |           |  0.0808081 |      3.39287 |
+    | qnn_bag_0.3 | ZZ_embedding        | HPzRx              |   0.222222 |            0.333333 |           |  0.0808081 |      4.083   |
+    | qnn_bag_0.3 | rx_embedding        | tree_tensor        |   0.222222 |            0.333333 |           |  0.0808081 |      5.86537 |
+    | qnn_bag_0.3 | amplitude_embedding | two_local          |   0.222222 |            0.333333 |           |  0.0808081 |      4.51937 |
+    | qnn_bag_0.3 | ZZ_embedding        | two_local          |   0.222222 |            0.333333 |           |  0.0808081 |      3.939   |
+    | qnn_bag_0.3 | rz_embedding        | two_local          |   0.222222 |            0.333333 |           |  0.0808081 |      3.9069  |
+    | qnn_bag_0.3 | ry_embedding        | two_local          |   0.222222 |            0.333333 |           |  0.0808081 |      3.88555 |
+    | qnn_bag_0.3 | rx_embedding        | two_local          |   0.222222 |            0.333333 |           |  0.0808081 |      3.95736 |
+    | qnn_bag_0.3 | amplitude_embedding | tree_tensor        |   0.222222 |            0.333333 |           |  0.0808081 |      5.45911 |
+    | qnn_bag_0.3 | ZZ_embedding        | tree_tensor        |   0.222222 |            0.333333 |           |  0.0808081 |      5.95279 |
+    | qnn_bag_0.3 | rz_embedding        | tree_tensor        |   0.222222 |            0.333333 |           |  0.0808081 |      6.21761 |
+    | qnn_bag_0.3 | ry_embedding        | tree_tensor        |   0.222222 |            0.333333 |           |  0.0808081 |      5.92094 |
+    | qnn_bag_0.3 | amplitude_embedding | hardware_efficient |   0.222222 |            0.333333 |           |  0.0808081 |     13.4813  |
+    | qnn_bag_0.3 | ZZ_embedding        | hardware_efficient |   0.222222 |            0.333333 |           |  0.0808081 |     13.408   |
+    | qnn_bag_0.3 | rz_embedding        | hardware_efficient |   0.222222 |            0.333333 |           |  0.0808081 |     13.3913  |
+    | qnn_bag_0.3 | ry_embedding        | hardware_efficient |   0.222222 |            0.333333 |           |  0.0808081 |     13.354   |
+    | qnn_bag_0.3 | rx_embedding        | hardware_efficient |   0.222222 |            0.333333 |           |  0.0808081 |     13.8513  |
+    | qnn_bag_0.3 | amplitude_embedding | HPzRx              |   0.222222 |            0.333333 |           |  0.0808081 |      3.33983 |
     """
 
     def __init__(self, nqubits=8, randomstate=1234, predictions=False, ignoreWarnings=True, numPredictors=10, numLayers=5, customMetric=None, customImputerNum=None, customImputerCat=None, classifiers="all",verbose=1,optimizer=None,learningRate=0.1,epochs=100,runs=1,maxSamples=1.0):
@@ -91,20 +179,28 @@ class QuantumClassifier():
         self.runs = runs
         self.maxSamples = maxSamples
 
+        self.verboseprint = print if verbose else lambda *a, **k: None
+
         if optimizer is None:
+            self.verboseprint("No optimizer has been passed adam will be used by default.")
             self.optimizer = optax.adam(learning_rate=self.learninRate)
         else:
-            self.optimizer = optimizer
+            if isinstance(optimizer, optax.GradientTransformation):
+                self.verboseprint("Optimizer is an optax optimizer; setting its learning rate.")
+                self.optimizer = optimizer.replace(learning_rate=self.learningRate)
+            else:
+                self.verboseprint("Optimizer is not from optax library; using the provided optimizer.")
+                self.optimizer = optimizer
         
         if customImputerNum is not None:
             module = inspect.getmodule(customImputerNum)
             # Check if the module belongs to sklearn.impute
             if module.__name__.startswith('sklearn.impute'):
-                print("The object belongs to the sklearn.impute module. Custom Numeric Imputer will be used.")
+                self.verboseprint("The object belongs to the sklearn.impute module. Custom Numeric Imputer will be used.")
                 self.numeric_transformer = Pipeline(
                 steps=[("imputer",customImputerNum), ("scaler", StandardScaler())])
             else:
-                print("The object does not belong to the sklearn.impute module. Default Custom Numeric Imputer will be used.")
+                self.verboseprint("The object does not belong to the sklearn.impute module. Default Custom Numeric Imputer will be used.")
         else:
             self.numeric_transformer = Pipeline(
             steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
@@ -114,11 +210,11 @@ class QuantumClassifier():
             module = inspect.getmodule(customImputerNum)
             # Check if the module belongs to sklearn.impute
             if module.__name__.startswith('sklearn.impute'):
-                print("The object belongs to the sklearn.impute module. Custom Numeric Categorical will be used.")
+                self.verboseprint("The object belongs to the sklearn.impute module. Custom Numeric Categorical will be used.")
                 self.categorical_transformer = Pipeline(
                 steps=[("imputer",customImputerCat), ("scaler", StandardScaler())])
             else:
-                print("The object does not belong to the sklearn.impute module. Default Custom Categorical Imputer will be used.")
+                self.verboseprint("The object does not belong to the sklearn.impute module. Default Custom Categorical Imputer will be used.")
         else:    
             self.categorical_transformer = Pipeline(
             steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
@@ -159,6 +255,7 @@ class QuantumClassifier():
         # TABLE
         NAMES = []
         EMBEDDINGS = []
+        ANSATZ = []
         ACCURACY = []
         B_ACCURACY = []
         ROC_AUC = []
@@ -230,7 +327,7 @@ class QuantumClassifier():
             
             name, embedding, ansatz, feature = model
             name = name if feature==None else name + f"_{feature}"
-            print(name,embedding,ansatz)
+            self.verboseprint(name,embedding,ansatz)
 
             if name == "qsvm":        
                 start = time.time()
@@ -245,8 +342,8 @@ class QuantumClassifier():
                 except Exception as exception:
                     roc_auc = None
                     if self.ignoreWarnings is False:
-                        print("ROC AUC couldn't be calculated for " + name)
-                        print(exception)
+                        self.verboseprint("ROC AUC couldn't be calculated for " + name)
+                        self.verboseprint(exception)
                
             elif name == "qnn":
                 if binary:
@@ -256,7 +353,7 @@ class QuantumClassifier():
                     qnn_batched = jax.vmap(qnn_tmp, (0, None))
                     # Jit for faster execution
                     qnn = jax.jit(qnn_batched)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor_binary(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train,y_test=y_test,runs=self.runs,seed=self.randomstate)
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor_binary(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train,y_test=y_test,runs=self.runs,seed=self.randomstate,verboseprint=self.verboseprint)
                     if self.predictions:
                         predictions.append(preds)
                 else:
@@ -268,7 +365,7 @@ class QuantumClassifier():
                     qnn_batched = jax.vmap(qnn_tmp, (0, None))
                     # Jit for faster execution
                     qnn = jax.jit(qnn_batched)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs)
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,verboseprint=self.verboseprint)
                     if self.predictions:
                         predictions.append(preds)
             elif "qnn_bag" in name:
@@ -279,7 +376,7 @@ class QuantumClassifier():
                     qnn_batched_bag = jax.vmap(qnn_tmp_bag, (0, None))
                     # Jit for faster execution
                     qnn_bag = jax.jit(qnn_batched_bag)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor_binary(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train,y_test=y_test,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples)
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor_binary(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train,y_test=y_test,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
                     if self.predictions:
                         predictions.append(preds)
                 else:
@@ -291,11 +388,12 @@ class QuantumClassifier():
                     qnn_batched_bag = jax.vmap(qnn_tmp_bag, (0, None))
                     # Jit for faster execution
                     qnn_bag = jax.jit(qnn_batched_bag)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples)
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
                     if self.predictions:
                         predictions.append(preds)
 
             NAMES.append(name)
+            ANSATZ.append(ansatz)
             ACCURACY.append(accuracy)
             B_ACCURACY.append(b_accuracy)
             ROC_AUC.append(roc_auc)
@@ -308,10 +406,11 @@ class QuantumClassifier():
                 customMetric.append(customMetric)
             if self.verbose > 0:
                 if self.customMetric is not None:
-                    print(
+                    self.verboseprint(
                         {
                             "Model": NAMES[-1],
                             "Embedding": EMBEDDINGS[-1],
+                            "Ansatz": ANSATZ[-1],
                             "Accuracy": ACCURACY[-1],
                             "Balanced Accuracy": B_ACCURACY[-1],
                             "ROC AUC": ROC_AUC[-1],
@@ -321,10 +420,11 @@ class QuantumClassifier():
                         }
                     )
                 else:
-                    print(
+                    self.verboseprint(
                         {
                             "Model": NAMES[-1],
                             "Embedding": EMBEDDINGS[-1],
+                            "Ansatz": ANSATZ[-1],
                             "Accuracy": ACCURACY[-1],
                             "Balanced Accuracy": B_ACCURACY[-1],
                             "ROC AUC": ROC_AUC[-1],
@@ -340,6 +440,7 @@ class QuantumClassifier():
                 {
                     "Model": NAMES,
                     "Embedding": EMBEDDINGS,
+                    "Ansatz": ANSATZ,
                     "Accuracy": ACCURACY,
                     "Balanced Accuracy": B_ACCURACY,
                     "ROC AUC": ROC_AUC,
@@ -352,6 +453,7 @@ class QuantumClassifier():
                 {
                     "Model": NAMES,
                     "Embedding": EMBEDDINGS,
+                    "Ansatz": ANSATZ,
                     "Accuracy": ACCURACY,
                     "Balanced Accuracy": B_ACCURACY,
                     "ROC AUC": ROC_AUC,
@@ -365,9 +467,24 @@ class QuantumClassifier():
         )
         if self.predictions:
             predictions_df = pd.DataFrame.from_dict(predictions)
+        
+        print(scores.to_markdown())
         return scores, predictions_df if self.predictions is True else scores
 
+from sklearn.datasets import load_breast_cancer, load_iris
+from sklearn.model_selection import train_test_split
 
+data = load_iris()
+X = data.data
+y = data.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
+
+q = QuantumClassifier(nqubits=4,classifiers="all",verbose=0)
+
+scores, predicitons = q.fit(X_train, X_test, y_train, y_test)
+
+print(scores.to_markdown()) 
 
 
 

@@ -46,7 +46,8 @@ threadpoolctl==3.1.0
 toolz==0.12.0
 #typing_extensions==4.4.0
 #urllib3==1.26.13
-wheel==0.41.2
+wheel
+tabulate
 #xlrd==2.0.1
 #zipp==3.18.1
 

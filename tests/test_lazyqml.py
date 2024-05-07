@@ -17,8 +17,7 @@ class TestLazyqml(unittest.TestCase):
         data = load_iris()
         X = data.data
         y = data.target
-        print(y)
-
+        
         X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
         q = QuantumClassifier(nqubits=4,classifiers=["qnn_bag"],verbose=0)
@@ -26,13 +25,13 @@ class TestLazyqml(unittest.TestCase):
         scores = q.fit(X_train, X_test, y_train, y_test)
 
         print(scores)
+
     def test_binary(self):
         from sklearn.datasets import load_breast_cancer, load_iris
         from sklearn.model_selection import train_test_split
         data = load_breast_cancer()
         X = data.data
         y = data.target
-        print(y)
 
         X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
