@@ -28,8 +28,7 @@ class QuantumClassifier():
     Parameters
     ----------
     verbose : int, optional (default=0)
-        For the liblinear and lbfgs solvers set verbose to any positive
-        number for verbosity.
+        For the liblinear and lbfgs solvers set verbose to any positive number for verbosity.
     ignoreWarnings : bool, optional (default=True)
         When set to True, the warning related to algorigms that are not able to run are ignored.
     customMetric : function, optional (default=None)
@@ -39,9 +38,27 @@ class QuantumClassifier():
     customImputerCat : function, optional (default=None)
         When function is provided, models are imputed based on the custom categorical imputer provided.
     prediction : bool, optional (default=False)
-        When set to True, the predictions of all the models models are returned as dataframe.
+        When set to True, the predictions of all the models models are returned as a pandas dataframe.
     classifiers : string, optional (default="all")
         When function is provided, trains the chosen classifier(s) ["all", "qsvm", "qnn", "qnnbag"].
+    randomSate : int, optional (default=1234)
+        This integer is used as a seed for the repeatability of the experiments.
+    nqubits : int, optional (default=8)
+        This integer is used for defining the number of qubits of the quantum circuits that the models will use.
+    numLayers : int, optional (default=5)
+        The number of layers that the Quantum Neural Network (QNN) models will use, is set to 5 by default.
+    numPredictors : int, optional (default=10)
+        The number of different predictoras that the Quantum Neural Networks with Bagging (QNN_Bag) will use, is set to 10 by default.
+    learningRate : int, optional (default=0.1)
+        The parameter that will be used for the optimization process of all the Quantum Neural Networks (QNN) in the gradient descent, is set to 0.1 by default.
+    optimizer : optax optimizer, optional (default=optax.adam(learningRate))
+        The function that will be used during the gradient descent optimization of the trainable parameters, this must be an optax optimizer function.
+    epochs : int, optional (default=100)
+        The number of complete passes that will be done over the dataset during the fitting of the models.
+    runs : int, optional (default=1)
+        The number of training runs that will be done with the Quantum Neural Network (QNN) models.
+    maxSamples : float, optiona (default=1.0)
+        A floating point number between 0 and 1.0 that indicates the percentage of the dataset that will be used for each Quantum Neural Network with Bagging (QNN_Bag).
 
     Examples
     --------
@@ -56,9 +73,10 @@ class QuantumClassifier():
     >>> models,predictions = clf.fit(X_train, X_test, y_train, y_test)
     >>> model_dictionary = clf.provide_models(X_train,X_test,y_train,y_test)
     >>> models
+    >>> .
     """
 
-    def __init__(self, nqubits=8, randomstate=1234, predictions=False, ignoreWarnings=True, numPredictors=10, numLayers=5, customMetric=None, customImputerNum=None, customImputerCat=None, classifiers="all",verbose=1,optimizer=None,learningRate=0.1,epochs=100,runs=1,maxsamples=1):
+    def __init__(self, nqubits=8, randomstate=1234, predictions=False, ignoreWarnings=True, numPredictors=10, numLayers=5, customMetric=None, customImputerNum=None, customImputerCat=None, classifiers="all",verbose=1,optimizer=None,learningRate=0.1,epochs=100,runs=1,maxSamples=1.0):
         self.nqubits = nqubits
         self.randomstate = randomstate
         self.predictions = predictions
@@ -71,7 +89,7 @@ class QuantumClassifier():
         self.learninRate = learningRate
         self.epochs = epochs
         self.runs = runs
-        self.maxsamples = maxsamples
+        self.maxSamples = maxSamples
 
         if optimizer is None:
             self.optimizer = optax.adam(learning_rate=self.learninRate)
@@ -261,7 +279,7 @@ class QuantumClassifier():
                     qnn_batched_bag = jax.vmap(qnn_tmp_bag, (0, None))
                     # Jit for faster execution
                     qnn_bag = jax.jit(qnn_batched_bag)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor_binary(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train,y_test=y_test,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxsamples)
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor_binary(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train,y_test=y_test,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples)
                     if self.predictions:
                         predictions.append(preds)
                 else:
@@ -273,7 +291,7 @@ class QuantumClassifier():
                     qnn_batched_bag = jax.vmap(qnn_tmp_bag, (0, None))
                     # Jit for faster execution
                     qnn_bag = jax.jit(qnn_batched_bag)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxsamples)
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples)
                     if self.predictions:
                         predictions.append(preds)
 
