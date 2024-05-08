@@ -5,7 +5,8 @@
 """
  Import Packages
 """
-
+import math
+import logging
 import pennylane as qml
 import jax.numpy as jnp
 import optax
@@ -29,7 +30,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.utils import all_estimators
 from sklearn.base import RegressorMixin
 from sklearn.base import ClassifierMixin
-
+from itertools import product
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
@@ -290,7 +291,7 @@ def get_ansatz(ansatz, n_qubits):
     if ansatz == 'hardware_efficient':
         return hardware_efficient_ansatz, 3 * n_qubits
     if ansatz == 'tree_tensor':
-        return tree_tensor_ansatz , int(n_param_tree_tensor(n_qubits))
+        return tree_tensor_ansatz , 2**(n_qubits+1)-1
     if ansatz == 'HPzRx':
         return HPzRx , n_qubits
     if ansatz == 'two_local':
@@ -299,7 +300,7 @@ def get_ansatz(ansatz, n_qubits):
  Auxiliary Functions
 """    
 
-def create_circuit(n_qubits,layers,ansatz, n_class, backend='jax'):
+def create_circuit(n_qubits,layers,embedding,ansatz,n_class, backend='jax'):
     """Creates a quantum circuit for classification tasks.
 
     Args:
@@ -323,7 +324,7 @@ def create_circuit(n_qubits,layers,ansatz, n_class, backend='jax'):
     
     @qml.qnode(device, interface = 'jax')
     def circuit(x, theta):
-        get_embedding('amplitude_embedding')(x , wires=range(n_qubits))
+        get_embedding(embedding)(x , wires=range(n_qubits))
 
         for i in range(layers):
             ansatz(theta[i * params_per_layer: (i + 1) * params_per_layer], wires=range(n_qubits))
@@ -335,7 +336,7 @@ def create_circuit(n_qubits,layers,ansatz, n_class, backend='jax'):
 
     return jax.jit(circuit)
 
-def create_circuit_binary(n_qubits,layers,ansatz,backend="jax"):
+def create_circuit_binary(n_qubits,layers,embedding,ansatz,backend="jax"):
     """Creates a quantum circuit for binary classification tasks.
 
     Args:
@@ -361,7 +362,7 @@ def create_circuit_binary(n_qubits,layers,ansatz,backend="jax"):
     @qml.qnode(device, interface = 'jax')
     def circuit(x, theta):
         #embedding(x, wires=range(n_qubits))
-        get_embedding('amplitude_embedding')(x , wires=range(n_qubits))
+        get_embedding(embedding)(x , wires=range(n_qubits))
         for i in range(layers):
             #ry_embedding(x, wires=range(n_qubits))
             ansatz(theta[i * params_per_layer: (i + 1) * params_per_layer], wires=range(n_qubits))
@@ -501,7 +502,7 @@ def evaluate_bagging_predictor(qnn, n_estimators, max_features, max_samples, opt
             y_train_aux = jnp.argmax(y_train_est, axis=1)
             
             
-            verboseprint(f'Accuracy of bagging estimator {j} on test set: {accuracy_score(y_test,y_predict)}\n')
+            verboseprint(f'Accuracy of bagging estimator {j} on test set: {accuracy_score(y_test,y_predict)}')
             
             predictions.append(y_predict)
             predictions_train.append(y_predict_train)
@@ -642,14 +643,14 @@ def evaluate_bagging_predictor_binary(qnn, n_estimators, max_features, max_sampl
             y_predict = qnn(X_test[:,random_estimator_features], params)
             y_predict_train = qnn(X_train_est, params)
             
-            verboseprint(f'Error of bagging estimator {j} on test set: {cross_entropy_loss(y_test_ohe,y_predict)}\n')
+            verboseprint(f'Error of bagging estimator {j} on test set: {cross_entropy_loss(y_test_ohe,y_predict)}')
             
             
             end_time_ts = time.time()-start_time_ts
             
 
-            verboseprint(f'Accuracy of bagging estimator {j} on test set: {accuracy_score(y_test,y_predict>=0.5)}\n')
-            verboseprint(f'Accuracy of bagging estimator {j} on train set: {accuracy_score(y_train_est,y_predict_train>=0.5)}\n')
+            verboseprint(f'Accuracy of bagging estimator {j} on test set: {accuracy_score(y_test,y_predict>=0.5)}')
+            verboseprint(f'Accuracy of bagging estimator {j} on train set: {accuracy_score(y_train_est,y_predict_train>=0.5)}')
             predictions.append(y_predict)
             predictions_train.append(y_predict_train)
         
@@ -664,9 +665,9 @@ def evaluate_bagging_predictor_binary(qnn, n_estimators, max_features, max_sampl
         
         y_predict = jnp.mean(predictions, axis=0)
         y_predict_train = jnp.mean(predictions_train, axis=0)
-        verboseprint(f'Error of bagging on test set: {cross_entropy_loss(y_test_ohe,y_predict)}\n')
+        verboseprint(f'Error of bagging on test set: {cross_entropy_loss(y_test_ohe,y_predict)}')
         
-        verboseprint(f'Accuracy of bagging on test set: {accuracy_score(y_test,y_predict>=0.5)}\n')        
+        verboseprint(f'Accuracy of bagging on test set: {accuracy_score(y_test,y_predict>=0.5)}')        
 
         y_predict = y_predict>=0.5
 

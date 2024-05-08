@@ -20,6 +20,45 @@ embeddings = ['rx_embedding','ry_embedding','rz_embedding','ZZ_embedding', 'ampl
 
 features = [0.8, 0.5, 0.3]
 
+
+def _check_classifiers(array):
+    allowed_keywords = {"all", "qsvm", "qnn", "qnn_bag"} 
+    return all(keyword in allowed_keywords for keyword in array)
+def _check_embeddings(array):
+    allowed_keywords = {"all", "amplitude_embedding", "ZZ_embedding", "rx_embedding", "rz_embedding", "ry_embedding"} 
+    return all(keyword in allowed_keywords for keyword in array)
+def _check_ansatz(array):
+    allowed_keywords = {"all", "HPzRx","hardware_efficient", "tree_tensor", "two_local"} 
+    return all(keyword in allowed_keywords for keyword in array)
+def _check_features(array):
+    return all((keyword > 0 and keyword <= 1) for keyword in array)
+
+def create_combinations(classifiers, embeddings, ansatzs, features):
+        combinations = []
+        features.append(None)
+        ansatzs.append(None)
+        if "all" in classifiers:
+            classifiers = ["qsvm", "qnn", "qnn_bag"]
+        if "all" in embeddings:
+            embeddings = ["amplitude_embedding", "ZZ_embedding", "rx_embedding", "rz_embedding", "ry_embedding"]
+        if "all" in ansatzs:
+            ansatzs = ["HPzRx", "tree_tensor", "two_local", "hardware_efficient", None]
+
+        for classifier, embedding, ansatz, feature in product(classifiers, embeddings, ansatzs, features):
+            if classifier == "qsvm":
+                # For "qsvm", ansatz and feature should be None
+                if ansatz is None and feature is None:
+                    combinations.append((classifier, embedding, ansatz, feature))
+            elif classifier == "qnn":
+                # For "qnn", feature should be None and ansatz cannot be None
+                if feature is None and ansatz is not None:
+                    combinations.append((classifier, embedding, ansatz, feature))
+            elif classifier == "qnn_bag":
+                # For "qnn_bag", ansatz and feature cannot be None
+                if embedding is not None and ansatz is not None and feature is not None:
+                    combinations.append((classifier, embedding, ansatz, feature))
+        return combinations
+
 """
  Quantum Classifier
 """
@@ -29,8 +68,8 @@ class QuantumClassifier():
     This module helps in fitting to all the classification algorithms that are available in Scikit-learn
     Parameters
     ----------
-    verbose : int, optional (default=0)
-        For the liblinear and lbfgs solvers set verbose to any positive number for verbosity.
+    verbose : bool, optional (default=False)
+        Verbose True for showing every training message during the fit.
     ignoreWarnings : bool, optional (default=True)
         When set to True, the warning related to algorigms that are not able to run are ignored.
     customMetric : function, optional (default=None)
@@ -41,8 +80,12 @@ class QuantumClassifier():
         When function is provided, models are imputed based on the custom categorical imputer provided.
     prediction : bool, optional (default=False)
         When set to True, the predictions of all the models models are returned as a pandas dataframe.
-    classifiers : string, optional (default="all")
+    classifiers : list of strings, optional (default=["all"])
         When function is provided, trains the chosen classifier(s) ["all", "qsvm", "qnn", "qnnbag"].
+    embeddings : list of strings, optional (default=["all"])
+        When function is provided, trains the chosen embeddings(s) ["all", "amplitude_embedding", "ZZ_embedding", "rx_embedding", "rz_embedding", "ry_embedding"].
+    ansatzs : list of strings, optional (default=["all"])
+        When function is provided, trains the chosen ansatzs(s) ["all", "HPzRx", "tree_tensor", "two_local", "hardware_efficient"].
     randomSate : int, optional (default=1234)
         This integer is used as a seed for the repeatability of the experiments.
     nqubits : int, optional (default=8)
@@ -51,8 +94,8 @@ class QuantumClassifier():
         The number of layers that the Quantum Neural Network (QNN) models will use, is set to 5 by default.
     numPredictors : int, optional (default=10)
         The number of different predictoras that the Quantum Neural Networks with Bagging (QNN_Bag) will use, is set to 10 by default.
-    learningRate : int, optional (default=0.1)
-        The parameter that will be used for the optimization process of all the Quantum Neural Networks (QNN) in the gradient descent, is set to 0.1 by default.
+    learningRate : int, optional (default=0.01)
+        The parameter that will be used for the optimization process of all the Quantum Neural Networks (QNN) in the gradient descent, is set to 0.01 by default.
     optimizer : optax optimizer, optional (default=optax.adam(learningRate))
         The function that will be used during the gradient descent optimization of the trainable parameters, this must be an optax optimizer function.
     epochs : int, optional (default=100)
@@ -164,33 +207,148 @@ class QuantumClassifier():
     | qnn_bag_0.3 | amplitude_embedding | HPzRx              |   0.222222 |            0.333333 |           |  0.0808081 |      3.33983 |
     """
 
-    def __init__(self, nqubits=8, randomstate=1234, predictions=False, ignoreWarnings=True, numPredictors=10, numLayers=5, customMetric=None, customImputerNum=None, customImputerCat=None, classifiers="all",verbose=1,optimizer=None,learningRate=0.1,epochs=100,runs=1,maxSamples=1.0):
-        self.nqubits = nqubits
-        self.randomstate = randomstate
-        self.predictions = predictions
-        self.ignoreWarnings = ignoreWarnings
-        self.numLayers = numLayers
-        self.numPredictors = numPredictors
-        self.customMetric = customMetric
-        self.classifiers = classifiers
-        self.verbose = verbose
-        self.learninRate = learningRate
-        self.epochs = epochs
-        self.runs = runs
+    
+    def __init__(self, nqubits=8, randomstate=1234, predictions=False, ignoreWarnings=True, numPredictors=10, numLayers=5, customMetric=None, customImputerNum=None, customImputerCat=None, classifiers=["all"],ansatzs=["all"],embeddings=["all"],features=[0.3,0.5,0.8],verbose=False,optimizer=None,learningRate=0.01,epochs=100,runs=1,maxSamples=1.0):
+        errors = 0
+        errormsg = []
+        
+        if isinstance(nqubits, int):
+            if nqubits <= 0:
+                errors += 1
+                errormsg.append("The parameter <nqubits> should have a value greater than 0.")
+            else:
+                self.nqubits = nqubits
+        else:
+            errors += 1
+            errormsg.append("The parameter <nqubits> should be of integer type.")
+        
+        if isinstance(randomstate, int):        
+            self.randomstate = randomstate
+        else:
+            errors += 1
+            errormsg.append("The parameter <randomstate> should be of integer type.")
+
+        if isinstance(predictions, bool):        
+            self.predictions = predictions
+        else:
+            errors += 1
+            errormsg.append("The parameter <predictions> should be of boolean type.")
+        
+        if isinstance(ignoreWarnings, bool):        
+            self.ignoreWarnings = ignoreWarnings
+        else:
+            errors += 1
+            errormsg.append("The parameter <ignoreWarnings> should be of boolean type.")
+
+        if isinstance(numLayers, int):        
+            self.numLayers = numLayers
+        else:
+            errors += 1
+            errormsg.append("The parameter <numLayers> should be of integer type.")
+
+        if isinstance(numPredictors, int):
+            if numPredictors > 0:        
+                self.numPredictors = numPredictors
+            else:
+                errors += 1
+                errormsg.append("The parameter <numPredictors> should be bigger than 0.")    
+        else:
+            errors += 1
+            errormsg.append("The parameter <numPredictors> should be of integer type.")
+
+        are_all_strings = all(isinstance(element, str) for element in classifiers)
+        if are_all_strings:
+            if _check_classifiers(classifiers):
+                self.classifiers = classifiers
+            else:
+                errors += 1
+                errormsg.append("The parameter <classifiers> should belong to the following list ['qsvm', 'qnn', 'qnn_bag'].")
+        else:
+            errors += 1
+            errormsg.append("The parameter <classifiers> should be a list of strings type.")        
+
+        are_all_strings = all(isinstance(element, str) for element in embeddings)
+        if are_all_strings:
+            if _check_embeddings(embeddings):
+                self.embeddings = embeddings
+            else:
+                errors += 1
+                errormsg.append("The parameter <embeddings> should belong to the following list ['amplitude_embedding', 'ZZ_embedding', 'rx_embdedding', 'rz_embdedding', 'ry_embdedding']")
+        else:
+            errors += 1
+            errormsg.append("The parameter <embeddings> should be a list of strings type.")            
+        
+        are_all_strings = all(isinstance(element, str) for element in ansatzs)
+        if are_all_strings:
+            if _check_ansatz(ansatzs):
+                self.ansatzs = ansatzs
+            else:
+                errors += 1
+                errormsg.append("The parameter <ansatzs> should belong to the following list ['HPzRx', 'tree_tensor'', 'two_local', 'hardware_efficient']")
+        else:
+            errors += 1
+            errormsg.append("The parameter <ansatzs> should be a list of strings type.")  
+
+        are_all_strings = all(isinstance(element, float) for element in features)
+        if are_all_strings:
+            if _check_features(features):
+                self.features = features
+            else:
+                errors += 1
+                errormsg.append("The parameter <features> should belong to the interval (0,1].")
+        else:
+            errors += 1
+            errormsg.append("The parameter <features> should be a list of floats type.")     
+
+        if isinstance(learningRate, float):
+            if learningRate > 0:
+                self.learningRate = learningRate
+            else:
+                errors += 1
+                errormsg.append("The parameter <learningRate> should be bigger than 0.")
+        else:
+            errors += 1
+            errormsg.append("The parameter <learningRate> should be of float type.")        
+
+        if isinstance(epochs, int):
+            if epochs > 0:
+                self.epochs = epochs
+            else:
+                errors += 1
+                errormsg.append("The parameter <epochs> should be bigger than 0.")
+        else:
+            errors += 1
+            errormsg.append("The parameter <epochs> should be of integer type.")      
+
+        if isinstance(runs,int):
+            if runs > 0:
+                self.runs = runs
+            else:
+                errors += 1
+                errormsg.append("The parameter <runs> should be bigger than 0.")
+        else:
+            errors += 1
+            errormsg.append("The parameter <runs> should be of integer type.")      
+
         self.maxSamples = maxSamples
 
-        self.verboseprint = print if verbose else lambda *a, **k: None
+        if isinstance(verbose,bool):
+            self.verbose = verbose
+            self.verboseprint = print if verbose else lambda *a, **k: None
+        else:
+            print("Verbose is not an instance of bool, False will be assumed.")
+            self.verboseprint = lambda *a, **k: None
 
         if optimizer is None:
             self.verboseprint("No optimizer has been passed adam will be used by default.")
-            self.optimizer = optax.adam(learning_rate=self.learninRate)
+            self.optimizer = optax.adam(learning_rate=self.learningRate)
         else:
             if isinstance(optimizer, optax.GradientTransformation):
                 self.verboseprint("Optimizer is an optax optimizer; setting its learning rate.")
                 self.optimizer = optimizer.replace(learning_rate=self.learningRate)
             else:
-                self.verboseprint("Optimizer is not from optax library; using the provided optimizer.")
-                self.optimizer = optimizer
+                self.verboseprint("Optimizer is not from optax library; using the default optimizer.")
+                self.optimizer = optax.adam(learning_rate=self.learningRate)
         
         if customImputerNum is not None:
             module = inspect.getmodule(customImputerNum)
@@ -218,6 +376,13 @@ class QuantumClassifier():
         else:    
             self.categorical_transformer = Pipeline(
             steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
+        
+        self.customMetric = customMetric
+
+        if errors > 0:
+            for i in errormsg:
+                logging.error(i,exc_info=False)
+            exit()
 
 
     
@@ -298,9 +463,13 @@ class QuantumClassifier():
 
         pca = PCA(n_components=self.nqubits)
         pca_amp = PCA(n_components=2**self.nqubits)
+        pca_tree = PCA(n_components=2**math.floor(math.log2(self.nqubits)))
 
         X_train_amp = pca_amp.fit_transform(X_train) if 2**self.nqubits <= X_train.shape[1] else X_train
         X_test_amp = pca_amp.transform(X_test) if 2**self.nqubits <= X_test.shape[1] else X_test
+        
+        X_train_tree = pca_tree.fit_transform(X_train) if 2**math.floor(math.log2(self.nqubits)) <= X_train.shape[1] else X_train
+        X_test_tree = pca_tree.transform(X_test) if 2**math.floor(math.log2(self.nqubits)) <= X_test.shape[1] else X_test
 
         X_train = pca.fit_transform(X_train)
         X_test = pca.transform(X_test)
@@ -309,26 +478,16 @@ class QuantumClassifier():
         one = OneHotEncoder(sparse_output=False)
 
         # Creates tuple of (model_name, embedding, ansatz, features)
-        if self.classifiers == "all":
-            [models.append(("qsvm", embedding, None, None)) for embedding in embeddings]
-            [models.append(("qnn", embedding, ansatz, None)) for ansatz in ansatzs for embedding in embeddings]
-            [models.append(("qnn_bag", embedding, ansatz, feature)) for ansatz in ansatzs for embedding in embeddings for feature in features]
-        else:
-            if "qsvm" in self.classifiers:
-                [models.append(("qsvm", embedding, None, None)) for embedding in embeddings]
-            if "qnn" in self.classifiers :
-                [models.append(("qnn", embedding, ansatz, None)) for ansatz in ansatzs for embedding in embeddings]
-            if "qnn_bag" in self.classifiers:
-                [models.append(("qnn_bag", embedding, ansatz, feature)) for ansatz in ansatzs for embedding in embeddings for feature in features]
-            if models == []:
-                raise Exception("Error no valid classifiers selected. It should belong to the following list [\"all\",\"qsvm\",\"qnn\",\"qnn_bag\"]")
+        models = create_combinations(self.classifiers,self.embeddings,self.ansatzs,self.features)
+
 
         for model in models:
             
             name, embedding, ansatz, feature = model
+            
             name = name if feature==None else name + f"_{feature}"
             self.verboseprint(name,embedding,ansatz)
-
+            ansatz = ansatz if ansatz is not None else "~"
             if name == "qsvm":        
                 start = time.time()
                 qsvm = SVC(kernel= qkernel(embedding, n_qubits=self.nqubits))
@@ -348,47 +507,94 @@ class QuantumClassifier():
             elif name == "qnn":
                 if binary:
                     start = time.time()
-                    qnn_tmp = create_circuit_binary(self.nqubits, layers=self.numLayers, ansatz=ansatz)
+                    qnn_tmp = create_circuit_binary(n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits, layers=self.numLayers, ansatz=ansatz,embedding=embedding)
                     # apply vmap on x (first circuit param)
                     qnn_batched = jax.vmap(qnn_tmp, (0, None))
                     # Jit for faster execution
                     qnn = jax.jit(qnn_batched)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor_binary(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train,y_test=y_test,runs=self.runs,seed=self.randomstate,verboseprint=self.verboseprint)
+                    
+                    if embedding == "amplitude_embedding":
+                            auxTrain = X_train_amp
+                            auxTest = X_test_amp
+                    else:
+                        if ansatz == "tree_tensor":
+                            auxTrain = X_train_tree
+                            auxTest = X_test_tree
+                        else:
+                            auxTrain = X_train
+                            auxTest = X_test
+
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor_binary(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train,y_test=y_test,runs=self.runs,seed=self.randomstate,verboseprint=self.verboseprint)
                     if self.predictions:
                         predictions.append(preds)
                 else:
                     y_train_o = one.fit_transform(y_train.reshape(-1,1))
                     y_test_o = one.transform(y_test.reshape(-1,1))
                     start = time.time()
-                    qnn_tmp = create_circuit(self.nqubits, layers=self.numLayers, ansatz=ansatz, n_class=numClasses)
+                    qnn_tmp = create_circuit(n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits, layers=self.numLayers, ansatz=ansatz, n_class=numClasses,embedding=embedding)
                     # apply vmap on x (first circuit param)
                     qnn_batched = jax.vmap(qnn_tmp, (0, None))
                     # Jit for faster execution
                     qnn = jax.jit(qnn_batched)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,verboseprint=self.verboseprint)
+                    
+                    if embedding == "amplitude_embedding":
+                            auxTrain = X_train_amp
+                            auxTest = X_test_amp
+                    else:
+                        if ansatz == "tree_tensor":
+                            auxTrain = X_train_tree
+                            auxTest = X_test_tree
+                        else:
+                            auxTrain = X_train
+                            auxTest = X_test
+
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,verboseprint=self.verboseprint)
                     if self.predictions:
                         predictions.append(preds)
             elif "qnn_bag" in name:
                 if binary:
                     start = time.time()
-                    qnn_tmp_bag = create_circuit_binary(n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz)
+                    qnn_tmp_bag = create_circuit_binary(n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,embedding=embedding)
                     # apply vmap on x (first circuit param)
                     qnn_batched_bag = jax.vmap(qnn_tmp_bag, (0, None))
                     # Jit for faster execution
                     qnn_bag = jax.jit(qnn_batched_bag)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor_binary(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train,y_test=y_test,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
+
+                    if embedding == "amplitude_embedding":
+                            auxTrain = X_train_amp
+                            auxTest = X_test_amp
+                    else:
+                        if ansatz == "tree_tensor":
+                            auxTrain = X_train_tree
+                            auxTest = X_test_tree
+                        else:
+                            auxTrain = X_train
+                            auxTest = X_test
+                    
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor_binary(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train,y_test=y_test,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
                     if self.predictions:
                         predictions.append(preds)
                 else:
                     start = time.time()
                     y_train_o =one.fit_transform(y_train.reshape(-1,1))
                     y_test_o = one.transform(y_test.reshape(-1,1))
-                    qnn_tmp_bag = create_circuit(n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,n_class=numClasses)
+                    qnn_tmp_bag = create_circuit(n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,n_class=numClasses,embedding=embedding)
                     # apply vmap on x (first circuit param)
                     qnn_batched_bag = jax.vmap(qnn_tmp_bag, (0, None))
                     # Jit for faster execution
                     qnn_bag = jax.jit(qnn_batched_bag)
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits=self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=X_train if embedding != "amplitude_embedding" else X_train_amp,X_test=X_test if embedding != "amplitude_embedding" else X_test_amp,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
+                    
+                    if embedding == "amplitude_embedding":
+                            auxTrain = X_train_amp
+                            auxTest = X_test_amp
+                    else:
+                        if ansatz == "tree_tensor":
+                            auxTrain = X_train_tree
+                            auxTest = X_test_tree
+                        else:
+                            auxTrain = X_train
+                            auxTest = X_test
+                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
                     if self.predictions:
                         predictions.append(preds)
 
@@ -404,35 +610,33 @@ class QuantumClassifier():
             if self.customMetric is not None:
                 customMetric = self.customMetric(y_test, y_pred)
                 customMetric.append(customMetric)
-            if self.verbose > 0:
-                if self.customMetric is not None:
-                    self.verboseprint(
-                        {
-                            "Model": NAMES[-1],
-                            "Embedding": EMBEDDINGS[-1],
-                            "Ansatz": ANSATZ[-1],
-                            "Accuracy": ACCURACY[-1],
-                            "Balanced Accuracy": B_ACCURACY[-1],
-                            "ROC AUC": ROC_AUC[-1],
-                            "F1 Score": F1[-1],
-                            self.customMetric.__name__: customMetric,
-                            "Time taken": TIME[-1],
-                        }
-                    )
-                else:
-                    self.verboseprint(
-                        {
-                            "Model": NAMES[-1],
-                            "Embedding": EMBEDDINGS[-1],
-                            "Ansatz": ANSATZ[-1],
-                            "Accuracy": ACCURACY[-1],
-                            "Balanced Accuracy": B_ACCURACY[-1],
-                            "ROC AUC": ROC_AUC[-1],
-                            "F1 Score": F1[-1],
-                            "Time taken": TIME[-1],
-                        }
-                    )
-            
+                self.verboseprint(
+                    {
+                        "Model": NAMES[-1],
+                        "Embedding": EMBEDDINGS[-1],
+                        "Ansatz": ANSATZ[-1],
+                        "Accuracy": ACCURACY[-1],
+                        "Balanced Accuracy": B_ACCURACY[-1],
+                        "ROC AUC": ROC_AUC[-1],
+                        "F1 Score": F1[-1],
+                        self.customMetric.__name__: customMetric,
+                        "Time taken": TIME[-1],
+                    }
+                )
+            else:
+                self.verboseprint(
+                    {
+                        "Model": NAMES[-1],
+                        "Embedding": EMBEDDINGS[-1],
+                        "Ansatz": ANSATZ[-1],
+                        "Accuracy": ACCURACY[-1],
+                        "Balanced Accuracy": B_ACCURACY[-1],
+                        "ROC AUC": ROC_AUC[-1],
+                        "F1 Score": F1[-1],
+                        "Time taken": TIME[-1],
+                    }
+                )
+        
             
         if self.customMetric is None:
            
@@ -474,18 +678,12 @@ class QuantumClassifier():
 from sklearn.datasets import load_breast_cancer, load_iris
 from sklearn.model_selection import train_test_split
 
-data = load_iris()
+data = load_breast_cancer()
 X = data.data
 y = data.target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
-q = QuantumClassifier(nqubits=4,classifiers="all",verbose=0)
+q = QuantumClassifier(nqubits=3,classifiers=["all"],ansatzs=["all"],embeddings=["all"],verbose=True)
 
 scores, predicitons = q.fit(X_train, X_test, y_train, y_test)
-
-print(scores.to_markdown()) 
-
-
-
-
