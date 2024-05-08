@@ -684,6 +684,6 @@ y = data.target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
-q = QuantumClassifier(nqubits=3,classifiers=["all"],ansatzs=["all"],embeddings=["all"],verbose=True)
+q = QuantumClassifier(nqubits=2,classifiers=["all"],ansatzs=["all"],embeddings=["all"],verbose=True)
 
 scores, predicitons = q.fit(X_train, X_test, y_train, y_test)
