@@ -6,7 +6,7 @@
  Import modules
 """
 
-from .common import *
+from common import *
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -457,12 +457,16 @@ class QuantumClassifier():
         pca = PCA(n_components=self.nqubits)
         pca_amp = PCA(n_components=2**self.nqubits)
         pca_tree = PCA(n_components=2**math.floor(math.log2(self.nqubits)))
-
+        pca_tree_amp = PCA(n_components=2**(math.floor(math.log2(self.nqubits))*2))
+        
         X_train_amp = pca_amp.fit_transform(X_train) if 2**self.nqubits <= X_train.shape[1] else X_train
         X_test_amp = pca_amp.transform(X_test) if 2**self.nqubits <= X_test.shape[1] else X_test
         
         X_train_tree = pca_tree.fit_transform(X_train) if 2**math.floor(math.log2(self.nqubits)) <= X_train.shape[1] else X_train
         X_test_tree = pca_tree.transform(X_test) if 2**math.floor(math.log2(self.nqubits)) <= X_test.shape[1] else X_test
+
+        X_train_tree_amp = pca_tree_amp.fit_transform(X_train) if 2**(math.floor(math.log2(self.nqubits))*2) <= X_train.shape[1] else X_train
+        X_test_tree_amp = pca_tree_amp.transform(X_test) if 2**(math.floor(math.log2(self.nqubits))*2) <= X_test.shape[1] else X_test
 
         X_train = pca.fit_transform(X_train)
         X_test = pca.transform(X_test)
@@ -507,6 +511,10 @@ class QuantumClassifier():
                     qnn = jax.jit(qnn_batched)
                     
                     if embedding == "amplitude_embedding":
+                        if ansatz == "tree_tensor":
+                            auxTrain = X_train_tree_amp
+                            auxTest = X_test_tree_amp
+                        else:
                             auxTrain = X_train_amp
                             auxTest = X_test_amp
                     else:
@@ -531,6 +539,10 @@ class QuantumClassifier():
                     qnn = jax.jit(qnn_batched)
                     
                     if embedding == "amplitude_embedding":
+                        if ansatz == "tree_tensor":
+                            auxTrain = X_train_tree_amp
+                            auxTest = X_test_tree_amp
+                        else:
                             auxTrain = X_train_amp
                             auxTest = X_test_amp
                     else:
@@ -554,6 +566,10 @@ class QuantumClassifier():
                     qnn_bag = jax.jit(qnn_batched_bag)
 
                     if embedding == "amplitude_embedding":
+                        if ansatz == "tree_tensor":
+                            auxTrain = X_train_tree_amp
+                            auxTest = X_test_tree_amp
+                        else:
                             auxTrain = X_train_amp
                             auxTest = X_test_amp
                     else:
@@ -578,6 +594,10 @@ class QuantumClassifier():
                     qnn_bag = jax.jit(qnn_batched_bag)
                     
                     if embedding == "amplitude_embedding":
+                        if ansatz == "tree_tensor":
+                            auxTrain = X_train_tree_amp
+                            auxTest = X_test_tree_amp
+                        else:
                             auxTrain = X_train_amp
                             auxTest = X_test_amp
                     else:
@@ -677,6 +697,6 @@ y = data.target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
-q = QuantumClassifier(nqubits=2,classifiers=["all"],ansatzs=["all"],embeddings=["all"],verbose=True)
+q = QuantumClassifier(nqubits=3,classifiers=["all"],ansatzs=["all"],embeddings=["all"])
 
 scores, predicitons = q.fit(X_train, X_test, y_train, y_test)

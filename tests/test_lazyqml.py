@@ -20,7 +20,7 @@ class TestLazyqml(unittest.TestCase):
         
         X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
-        q = QuantumClassifier(nqubits=4,classifiers=["qnn_bag"],verbose=0)
+        q = QuantumClassifier(nqubits=4,classifiers=["all"])
 
         scores = q.fit(X_train, X_test, y_train, y_test)
 
@@ -35,7 +35,7 @@ class TestLazyqml(unittest.TestCase):
 
         X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
-        q = QuantumClassifier(nqubits=4,classifiers=["qnn_bag"],verbose=0)
+        q = QuantumClassifier(nqubits=2,classifiers=["all"])
 
         scores = q.fit(X_train, X_test, y_train, y_test)
 
