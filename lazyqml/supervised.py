@@ -33,7 +33,7 @@ def create_combinations(classifiers, embeddings, ansatzs, features):
         if "all" in classifiers:
             classifiers = ["qsvm", "qnn", "qnn_bag"]
         if "all" in embeddings:
-            embeddings = ["amplitude_embedding", "ZZ_embedding", "rx_embedding", "rz_embedding", "ry_embedding"]
+            embeddings = ["amplitude_embedding", "rx_embedding", "rz_embedding", "ry_embedding","ZZ_embedding"]
         if "all" in ansatzs:
             ansatzs = ["HPzRx", "tree_tensor", "two_local", "hardware_efficient", None]
 
@@ -266,7 +266,7 @@ class QuantumClassifier():
                 self.embeddings = embeddings
             else:
                 errors += 1
-                errormsg.append("The parameter <embeddings> should belong to the following list ['amplitude_embedding', 'ZZ_embedding', 'rx_embdedding', 'rz_embdedding', 'ry_embdedding']")
+                errormsg.append("The parameter <embeddings> should belong to the following list ['amplitude_embedding', 'ZZ_embedding', 'rx_embedding', 'rz_embedding', 'ry_embedding']")
         else:
             errors += 1
             errormsg.append("The parameter <embeddings> should be a list of strings type.")            
@@ -468,8 +468,8 @@ class QuantumClassifier():
         X_train_tree_amp = pca_tree_amp.fit_transform(X_train) if 2**(math.floor(math.log2(self.nqubits))*2) <= X_train.shape[1] else X_train
         X_test_tree_amp = pca_tree_amp.transform(X_test) if 2**(math.floor(math.log2(self.nqubits))*2) <= X_test.shape[1] else X_test
 
-        X_train = pca.fit_transform(X_train)
-        X_test = pca.transform(X_test)
+        X_train = pca.fit_transform(X_train) if self.nqubits <= X_train.shape[1] else X_train
+        X_test = pca.transform(X_test) if self.nqubits <= X_test.shape[1] else X_test
         
         
         one = OneHotEncoder(sparse_output=False)
@@ -691,12 +691,12 @@ class QuantumClassifier():
 from sklearn.datasets import load_breast_cancer, load_iris
 from sklearn.model_selection import train_test_split
 
-data = load_breast_cancer()
+data = load_iris()
 X = data.data
 y = data.target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
 
-q = QuantumClassifier(nqubits=3,classifiers=["all"],ansatzs=["all"],embeddings=["all"])
+q = QuantumClassifier(nqubits=8,verbose=True)
 
 scores, predicitons = q.fit(X_train, X_test, y_train, y_test)

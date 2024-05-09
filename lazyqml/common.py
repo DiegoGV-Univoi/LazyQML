@@ -38,6 +38,8 @@ from sklearn.metrics import (
     f1_score,
 )
 
+
+#jax.config.update("jax_disable_jit",True)
 """
  Embeddings / Feature Maps
 """
@@ -91,18 +93,20 @@ def ZZ_embedding(x,wires):
         None
     """    
     nload=min(len(x), len(wires))
+    #nload=len(wires)
+        
     
     for i in range(nload):
         qml.Hadamard(i)
         qml.RZ(2.0*x[i],wires=i)
         
+
     for pair in list(combinations (range(nload), 2)):
         q0=pair[0]
         q1=pair[1]
         
         qml.CZ(wires=[q0,q1])
-        qml.RZ((2.0*(jnp.pi-x[q0])*
-               jnp.pi-x[q1]),wires=q1)
+        qml.RZ(2.0*(jnp.pi-x[q0])*(jnp.pi-x[q1]),wires=q1)
         qml.CZ(wires=[q0,q1])
 
 def amp_embedding (x , wires):
@@ -152,15 +156,15 @@ def qkernel (embedding, n_qubits):
         function: quantum kernel function
     """
     jax.config.update("jax_enable_x64", True)
-    embedding_circ = get_embedding(embedding)
+    # embedding_circ = get_embedding(embedding)
 
     device = qml.device("default.qubit.jax", wires = n_qubits)
     
     @jax.jit
     @qml.qnode(device, interface='jax')
     def kernel_circ(a , b):
-        embedding_circ(a , wires=range(n_qubits))
-        qml.adjoint(embedding_circ)(b , wires=range(n_qubits))
+        get_embedding(embedding)(a , wires=range(n_qubits))
+        qml.adjoint(get_embedding(embedding))(b , wires=range(n_qubits))
         return qml.probs(wires = range(n_qubits))
 
     def kernel(A, B):
@@ -190,19 +194,22 @@ def hardware_efficient_ansatz(theta, wires):
     
     for i in range(N-1):
         qml.CNOT(wires=[wires[i], wires[i + 1]])
+    qml.CNOT(wires=[wires[N-1],wires[0]])
     
     for i in range(N):
         qml.RZ(theta[3 * i + 1], wires=wires[i])
     
     for i in range(N-1):
         qml.CNOT(wires=[wires[i], wires[i + 1]])
-    
+    qml.CNOT(wires=[wires[N-1],wires[0]])
+
     for i in range(N):
         qml.RX(theta[3 * i + 2], wires=wires[i])
     
     for i in range(N-1):
         qml.CNOT(wires=[wires[i], wires[i + 1]])
-        
+    qml.CNOT(wires=[wires[N-1],wires[0]])
+
 def tree_tensor_ansatz(theta , wires):
     """Implements a tree tensor network ansatz circuit.
 
@@ -258,6 +265,7 @@ def HPzRx(theta, wires):
     
     for i in range(N-1):
         qml.CZ(wires=[wires[i], wires[i+1]])
+    qml.CZ(wires=[wires[N-1],wires[0]])
     
     for i in range(N):
         qml.RX(theta[i], wires=wires[i])
@@ -423,7 +431,6 @@ def evaluate_bagging_predictor(qnn, n_estimators, max_features, max_samples, opt
 
     @jax.jit
     def cross_entropy_loss(y_true, y_pred):
-        
         return -jnp.mean(jnp.sum(jnp.log(y_pred) * y_true, axis=1))
     
     @jax.jit
@@ -442,7 +449,7 @@ def evaluate_bagging_predictor(qnn, n_estimators, max_features, max_samples, opt
         params = optax.apply_updates(params, updates)
         return params, opt_state, loss
     
-    y_test_ohe = y_test.copy() 
+    y_test_ohe = y_test.copy()
     y_test = jnp.argmax(y_test, axis=1)
     
     verboseprint(f"QNN_BAG\t{ansatz}")
@@ -536,8 +543,8 @@ def evaluate_bagging_predictor(qnn, n_estimators, max_features, max_samples, opt
             y_predict = jnp.mean(predictions_softmax,axis=0).reshape(-1,3)
             y_predict_train = jnp.mean(predictions_softmax_train,axis=0).reshape(-1,3)
             verboseprint(f'Error of bagging on test set: {cross_entropy_loss(y_test_ohe,y_predict)}\n')
-    
             y_predict = jnp.argmax(y_predict, axis=1)
+            
             y_predict_train = jnp.argmax(y_predict_train, axis=1)
             end_time_ts = time.time()-start_time_ts
             verboseprint(f'Accuracy of bagging on test set: {accuracy_score(y_test,y_predict)}\n')
@@ -729,7 +736,6 @@ def evaluate_full_model_predictor(qnn, optimizer, n_qubits, runs, epochs, layers
     
     y_test_ohe = y_test.copy() 
     y_test = jnp.argmax(y_test, axis=1)
-
     for i in range(runs):
         # seed
         key = jax.random.PRNGKey(seed)
@@ -758,6 +764,7 @@ def evaluate_full_model_predictor(qnn, optimizer, n_qubits, runs, epochs, layers
         y_predict = jax.nn.softmax(y_predict)
         verboseprint(f'cross entropy loss: {cross_entropy_loss(y_test_ohe,y_predict)}')
         y_predict = jnp.argmax(y_predict, axis=1)
+        
         end_time_ts = time.time()-start_time_ts
         verboseprint(f'Accuracy of fullmodel on test set: {accuracy_score(y_test,y_predict)}')
 
