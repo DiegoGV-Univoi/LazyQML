@@ -6,20 +6,13 @@
  Import modules
 """
 
-from common import *
+from .common import *
 import warnings
 warnings.filterwarnings("ignore")
 
 """
  Classifiers
 """
-
-ansatzs = ['hardware_efficient','tree_tensor','two_local','HPzRx']
-
-embeddings = ['rx_embedding','ry_embedding','rz_embedding','ZZ_embedding', 'amplitude_embedding']
-
-features = [0.8, 0.5, 0.3]
-
 
 def _check_classifiers(array):
     allowed_keywords = {"all", "qsvm", "qnn", "qnn_bag"} 
