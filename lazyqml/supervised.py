@@ -89,8 +89,6 @@ class QuantumClassifier():
         The number of different predictoras that the Quantum Neural Networks with Bagging (QNN_Bag) will use, is set to 10 by default.
     learningRate : int, optional (default=0.01)
         The parameter that will be used for the optimization process of all the Quantum Neural Networks (QNN) in the gradient descent, is set to 0.01 by default.
-    optimizer : optax optimizer, optional (default=optax.adam)
-        The function that will be used during the gradient descent optimization of the trainable parameters, this must be an optax optimizer function.
     epochs : int, optional (default=100)
         The number of complete passes that will be done over the dataset during the fitting of the models.
     runs : int, optional (default=1)
@@ -201,7 +199,7 @@ class QuantumClassifier():
     """
 
     
-    def __init__(self, nqubits=8, randomstate=1234, predictions=False, ignoreWarnings=True, numPredictors=10, numLayers=5, customMetric=None, customImputerNum=None, customImputerCat=None, classifiers=["all"],ansatzs=["all"],embeddings=["all"],features=[0.3,0.5,0.8],verbose=False, optimizer=None,learningRate=0.01,epochs=100,runs=1,maxSamples=1.0):
+    def __init__(self, nqubits=8, randomstate=1234, predictions=False, ignoreWarnings=True, numPredictors=10, numLayers=5, customMetric=None, customImputerNum=None, customImputerCat=None, classifiers=["all"],ansatzs=["all"],embeddings=["all"],features=[0.3,0.5,0.8],verbose=False,learningRate=0.01,epochs=100,runs=1,maxSamples=1.0):
         errors = 0
         errormsg = []
         
@@ -331,18 +329,8 @@ class QuantumClassifier():
         else:
             logging.warn("Verbose is not an instance of bool, False will be assumed.")
             self.verboseprint = lambda *a, **k: None
-
-        if optimizer is None:
-            logging.warn("No optimizer has been passed adam will be used by default.")
-            self.optimizer = optax.adam(learning_rate=self.learningRate)
-        else:
-            if issubclass(optimizer.__annotations__["return"],optax._src.base.GradientTransformation):
-                logging.warn("Optimizer is an optax optimizer; setting its learning rate.")
-                self.optimizer = optax.inject_hyperparams(optimizer)(learning_rate=self.learningRate)
-            else:
-                
-                logging.warn("Optimizer is not from optax library; using the default optimizer.")
-                self.optimizer = optax.adam(learning_rate=self.learningRate)
+        
+        self.optimizer = optax.adam(learning_rate=self.learningRate)
         
         if customImputerNum is not None:
             module = inspect.getmodule(customImputerNum)
