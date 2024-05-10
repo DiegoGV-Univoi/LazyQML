@@ -5,6 +5,7 @@
 """
  Import Packages
 """
+from tabulate import tabulate
 import math
 import logging
 import pennylane as qml

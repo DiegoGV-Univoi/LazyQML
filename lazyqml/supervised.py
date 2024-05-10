@@ -376,6 +376,7 @@ class QuantumClassifier():
             for i in errormsg:
                 logging.error(i,exc_info=False)
             exit()
+        print(tabulate([[self.learningRate,self.epochs,self.runs,self.classifiers,self.embeddings,self.ansatzs,self.features,self.nqubits,self.numLayers,self.numPredictors]], headers=['Learning Rate', 'Epochs', "# Runs","Classifiers","Embeddings","Ansatzs","Features","Qubits","Layers","Predictors"], tablefmt='orgtbl'))
 
 
     
@@ -687,16 +688,3 @@ class QuantumClassifier():
         
         print(scores.to_markdown())
         return scores, predictions_df if self.predictions is True else scores
-
-from sklearn.datasets import load_breast_cancer, load_iris
-from sklearn.model_selection import train_test_split
-
-data = load_iris()
-X = data.data
-y = data.target
-
-X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
-
-q = QuantumClassifier(nqubits=8,verbose=True)
-
-scores, predicitons = q.fit(X_train, X_test, y_train, y_test)
