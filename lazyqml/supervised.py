@@ -6,7 +6,7 @@
  Import modules
 """
 
-from .common import *
+from common import *
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -329,30 +329,30 @@ class QuantumClassifier():
             self.verbose = verbose
             self.verboseprint = print if verbose else lambda *a, **k: None
         else:
-            logging.info("Verbose is not an instance of bool, False will be assumed.")
+            logging.warn("Verbose is not an instance of bool, False will be assumed.")
             self.verboseprint = lambda *a, **k: None
 
         if optimizer is None:
-            logging.info("No optimizer has been passed adam will be used by default.")
+            logging.warn("No optimizer has been passed adam will be used by default.")
             self.optimizer = optax.adam(learning_rate=self.learningRate)
         else:
             if issubclass(optimizer.__annotations__["return"],optax._src.base.GradientTransformation):
-                logging.info("Optimizer is an optax optimizer; setting its learning rate.")
+                logging.warn("Optimizer is an optax optimizer; setting its learning rate.")
                 self.optimizer = optax.inject_hyperparams(optimizer)(learning_rate=self.learningRate)
             else:
                 
-                logging.info("Optimizer is not from optax library; using the default optimizer.")
+                logging.warn("Optimizer is not from optax library; using the default optimizer.")
                 self.optimizer = optax.adam(learning_rate=self.learningRate)
         
         if customImputerNum is not None:
             module = inspect.getmodule(customImputerNum)
             # Check if the module belongs to sklearn.impute
             if module.__name__.startswith('sklearn.impute'):
-                logging.info("The object belongs to the sklearn.impute module. Custom Numeric Imputer will be used.")
+                logging.warn("The object belongs to the sklearn.impute module. Custom Numeric Imputer will be used.")
                 self.numeric_transformer = Pipeline(
                 steps=[("imputer",customImputerNum), ("scaler", StandardScaler())])
             else:
-                logging.info("The object does not belong to the sklearn.impute module. Default Custom Numeric Imputer will be used.")
+                logging.warn("The object does not belong to the sklearn.impute module. Default Custom Numeric Imputer will be used.")
         else:
             self.numeric_transformer = Pipeline(
             steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
@@ -362,11 +362,11 @@ class QuantumClassifier():
             module = inspect.getmodule(customImputerNum)
             # Check if the module belongs to sklearn.impute
             if module.__name__.startswith('sklearn.impute'):
-                logging.info("The object belongs to the sklearn.impute module. Custom Numeric Categorical will be used.")
+                logging.warn("The object belongs to the sklearn.impute module. Custom Numeric Categorical will be used.")
                 self.categorical_transformer = Pipeline(
                 steps=[("imputer",customImputerCat), ("scaler", StandardScaler())])
             else:
-                logging.info("The object does not belong to the sklearn.impute module. Default Custom Categorical Imputer will be used.")
+                logging.warn("The object does not belong to the sklearn.impute module. Default Custom Categorical Imputer will be used.")
         else:    
             self.categorical_transformer = Pipeline(
             steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
@@ -689,3 +689,17 @@ class QuantumClassifier():
         
         print(scores.to_markdown())
         return scores, predictions_df if self.predictions is True else scores
+
+from sklearn.datasets import load_breast_cancer, load_iris
+from sklearn.model_selection import train_test_split
+data = load_breast_cancer()
+X = data.data
+y = data.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.3,random_state =123)  
+#print(issubclass(optax.adam.__annotations__["return"],optax._src.base.GradientTransformation) )
+
+
+q = QuantumClassifier(nqubits=2,classifiers=["qnn"],optimizer=optax.adabelief,learningRate=0.1,verbose=True)
+
+scores, predicitons = q.fit(X_train, X_test, y_train, y_test)
