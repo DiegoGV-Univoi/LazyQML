@@ -24,6 +24,8 @@ from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 import datetime
 import time
+import sklearn
+from sklearn.model_selection import RepeatedStratifiedKFold, LeaveOneOut
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer, MissingIndicator
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
@@ -285,7 +287,7 @@ def TwoLocal(theta, wires):
     for i in range(N):
         qml.RY(theta[i], wires = i)
     for i in range(N - 1):
-            qml.CNOT(wires = [i, i + 1])
+        qml.CNOT(wires = [i, i + 1])
 
 def get_ansatz(ansatz, n_qubits):
     """Returns the ansatz function and the number of parameters based on the specified ansatz type.
@@ -300,7 +302,7 @@ def get_ansatz(ansatz, n_qubits):
     if ansatz == 'hardware_efficient':
         return hardware_efficient_ansatz, 3 * n_qubits
     if ansatz == 'tree_tensor':
-        return tree_tensor_ansatz , 2**(n_qubits+1)-1
+        return tree_tensor_ansatz , 2**(n_qubits-1)-1
     if ansatz == 'HPzRx':
         return HPzRx , n_qubits
     if ansatz == 'two_local':
@@ -557,7 +559,7 @@ def evaluate_bagging_predictor(qnn, n_estimators, max_features, max_samples, opt
                 verboseprint("ROC AUC couldn't be calculated")
                 verboseprint(exception)
 
-        return predictions, accuracy_score(y_test,y_predict), balanced_accuracy_score(y_test, y_predict), f1_score(y_test, y_predict, average="weighted"), roc_auc
+        return params_per_layer*layers*n_estimators,predictions, accuracy_score(y_test,y_predict), balanced_accuracy_score(y_test, y_predict), f1_score(y_test, y_predict, average="weighted"), roc_auc
 
 def evaluate_bagging_predictor_binary(qnn, n_estimators, max_features, max_samples, optimizer, n_qubits, runs, epochs, layers, ansatz, X_train, X_test, y_train, y_test, seed, verboseprint,ignore_warnings=True):
     """Evaluates a binary classification bagging predictor composed of a quantum neural network (QNN) ensemble.
@@ -687,7 +689,7 @@ def evaluate_bagging_predictor_binary(qnn, n_estimators, max_features, max_sampl
                 verboseprint("ROC AUC couldn't be calculated")
                 verboseprint(exception)
 
-        return y_predict, accuracy_score(y_test,y_predict), balanced_accuracy_score(y_test, y_predict), f1_score(y_test, y_predict, average="weighted"), roc_auc
+        return params_per_layer*layers*n_estimators ,y_predict, accuracy_score(y_test,y_predict), balanced_accuracy_score(y_test, y_predict), f1_score(y_test, y_predict, average="weighted"), roc_auc
 
 
 
@@ -777,7 +779,7 @@ def evaluate_full_model_predictor(qnn, optimizer, n_qubits, runs, epochs, layers
                 verboseprint("ROC AUC couldn't be calculated")
                 verboseprint(exception)
 
-        return y_predict, accuracy_score(y_test,y_predict), balanced_accuracy_score(y_test, y_predict), f1_score(y_test, y_predict, average="weighted"), roc_auc
+        return params_per_layer*layers, y_predict, accuracy_score(y_test,y_predict), balanced_accuracy_score(y_test, y_predict), f1_score(y_test, y_predict, average="weighted"), roc_auc
 
 
 def evaluate_full_model_predictor_binary(qnn, optimizer, n_qubits,  epochs, layers, ansatz, X_train, X_test, y_train, y_test, runs, seed, verboseprint, ignore_warnings=True):
@@ -868,4 +870,4 @@ def evaluate_full_model_predictor_binary(qnn, optimizer, n_qubits,  epochs, laye
                 verboseprint("ROC AUC couldn't be calculated")
                 verboseprint(exception)
 
-        return y_predict, accuracy_score(y_test,y_predict), balanced_accuracy_score(y_test, y_predict), f1_score(y_test, y_predict, average="weighted"), roc_auc
+        return params_per_layer*layers, y_predict, accuracy_score(y_test,y_predict), balanced_accuracy_score(y_test, y_predict), f1_score(y_test, y_predict, average="weighted"), roc_auc

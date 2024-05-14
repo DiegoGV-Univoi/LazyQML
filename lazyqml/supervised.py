@@ -11,9 +11,18 @@ import warnings
 warnings.filterwarnings("ignore")
 
 """
- Classifiers
+ Auxiliary functions
 """
+def adjust_nqubits(numClasses):
+    # Find the next power of 2 greater than numClasses
+    power = np.ceil(np.log2(numClasses))
+    nqubits = 2 ** power
+    
+    # Ensure nqubits is greater than numClasses
+    if nqubits <= numClasses:
+        nqubits *= 2
 
+    return int(nqubits)
 def _check_classifiers(array):
     allowed_keywords = {"all", "qsvm", "qnn", "qnn_bag"} 
     return all(keyword in allowed_keywords for keyword in array)
@@ -26,31 +35,57 @@ def _check_ansatz(array):
 def _check_features(array):
     return all((keyword > 0 and keyword <= 1) for keyword in array)
 
-def create_combinations(classifiers, embeddings, ansatzs, features):
-        combinations = []
-        features.append(None)
-        ansatzs.append(None)
-        if "all" in classifiers:
-            classifiers = ["qsvm", "qnn", "qnn_bag"]
-        if "all" in embeddings:
-            embeddings = ["amplitude_embedding", "rx_embedding", "rz_embedding", "ry_embedding","ZZ_embedding"]
-        if "all" in ansatzs:
-            ansatzs = ["HPzRx", "tree_tensor", "two_local", "hardware_efficient", None]
+def is_metric_function(func):
+    if func is None:
+        logging.warning("No custom Metric was passed.")
+        return False
+    # Step 1: Check if the function takes exactly two arguments
+    sig = inspect.signature(func)
+    if len(sig.parameters) != 2:
+        logging.warning("The custom metric does take only two parameters. It will not be used.")
+        return False
 
-        for classifier, embedding, ansatz, feature in product(classifiers, embeddings, ansatzs, features):
-            if classifier == "qsvm":
-                # For "qsvm", ansatz and feature should be None
-                if ansatz is None and feature is None:
-                    combinations.append((classifier, embedding, ansatz, feature))
-            elif classifier == "qnn":
-                # For "qnn", feature should be None and ansatz cannot be None
-                if feature is None and ansatz is not None:
-                    combinations.append((classifier, embedding, ansatz, feature))
-            elif classifier == "qnn_bag":
-                # For "qnn_bag", ansatz and feature cannot be None
-                if embedding is not None and ansatz is not None and feature is not None:
-                    combinations.append((classifier, embedding, ansatz, feature))
-        return combinations
+    # Step 2: Check if the function can be called with sample input
+    y_true = np.array([1, 2, 3])
+    y_pred = np.array([1.1, 1.9, 3.2])
+    try:
+        result = func(y_pred, y_true)
+    except Exception as e:
+        logging.warning("The custom metric function does not behave as expected. No custom metric will be used")
+        return False
+    
+    # Step 3: Check if the output is a single numerical value
+    if not isinstance(result, (int, float, np.number)):
+        logging.warning("The custom metric function does not return a single numerical value. It will not be used.")
+        return False
+    
+    logging.warning("The custom metric is valid and will be used.")
+    return True
+
+
+def create_combinations(classifiers, embeddings, ansatzs, features):
+    combinations = []
+    if "all" in classifiers:
+        classifiers = ["qsvm", "qnn", "qnn_bag"]
+    if "all" in embeddings:
+        embeddings = ["amplitude_embedding", "rx_embedding", "rz_embedding", "ry_embedding","ZZ_embedding"]
+    if "all" in ansatzs:
+        ansatzs = ["HPzRx", "tree_tensor", "two_local", "hardware_efficient", None]
+
+    for classifier, embedding, ansatz, feature in product(classifiers, embeddings, ansatzs, features+[None]):
+        if classifier == "qsvm":
+            # For "qsvm", ansatz and feature should be None
+            if ansatz is None and feature is None:
+                combinations.append((classifier, embedding, ansatz, feature))
+        elif classifier == "qnn":
+            # For "qnn", feature should be None and ansatz cannot be None
+            if feature is None and ansatz is not None:
+                combinations.append((classifier, embedding, ansatz, feature))
+        elif classifier == "qnn_bag":
+            # For "qnn_bag", ansatz and feature cannot be None
+            if embedding is not None and ansatz is not None and feature is not None:
+                combinations.append((classifier, embedding, ansatz, feature))
+    return combinations
 
 """
  Quantum Classifier
@@ -341,25 +376,32 @@ class QuantumClassifier():
                 steps=[("imputer",customImputerNum), ("scaler", StandardScaler())])
             else:
                 logging.warn("The object does not belong to the sklearn.impute module. Default Custom Numeric Imputer will be used.")
+                self.numeric_transformer = Pipeline(
+                steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
         else:
             self.numeric_transformer = Pipeline(
             steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
 
 
         if customImputerCat is not None:
-            module = inspect.getmodule(customImputerNum)
+            module = inspect.getmodule(customImputerCat)
             # Check if the module belongs to sklearn.impute
             if module.__name__.startswith('sklearn.impute'):
-                logging.warn("The object belongs to the sklearn.impute module. Custom Numeric Categorical will be used.")
+                logging.warn("The object belongs to the sklearn.impute module. Custom Categorical Imputer will be used.")
                 self.categorical_transformer = Pipeline(
                 steps=[("imputer",customImputerCat), ("scaler", StandardScaler())])
             else:
                 logging.warn("The object does not belong to the sklearn.impute module. Default Custom Categorical Imputer will be used.")
+                self.categorical_transformer = Pipeline(
+                steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
         else:    
             self.categorical_transformer = Pipeline(
             steps=[("imputer", SimpleImputer(strategy="mean")), ("scaler", StandardScaler())])
         
-        self.customMetric = customMetric
+        if is_metric_function(customMetric):
+            self.customMetric = customMetric
+        else:
+            self.customMetric = None
 
         if errors > 0:
             for i in errormsg:
@@ -369,7 +411,7 @@ class QuantumClassifier():
 
 
     
-    def fit(self, X_train, X_test, y_train, y_test):
+    def fit(self, X_train, y_train, X_test, y_test,showTable=True):
         """
         Fit Classification algorithms to X_train and y_train, predict and score on X_test, y_test.
         If the dimensions of the training vectors are not compatible with the different models, a 
@@ -392,7 +434,8 @@ class QuantumClassifier():
         y_test : array-like,
             Testing vectors, where rows is the number of samples
             and columns is the number of features.
-        
+        showTable : bool, optional (default=True)
+            Parameter to allow the fit to show a markdown table of the models metrics.
         Returns
         -------
         scores : Pandas DataFrame
@@ -414,10 +457,15 @@ class QuantumClassifier():
         predictions = {}
         
         models = []
-        
+        scores = None
 
         numClasses = len(np.unique(y_train))
         binary = numClasses == 2 
+
+        if (numClasses > 2**math.floor(math.log2(self.nqubits))):
+            logging.warning("The number of qubits must exceed the number of classes and be a power of 2 to execute all circuits successfully. \nEnsure that nqubits > #classes and that 2^floor(log2(nqubits)) > #classes.\nThe number of qubits will be changed to a valid one, this change will affect the QuantumClassifier object.")
+            self.nqubits = adjust_nqubits(numClasses)
+            logging.warning(f"New number of qubits:\t{self.nqubits}")
 
 
         if self.customMetric is not None:
@@ -466,7 +514,7 @@ class QuantumClassifier():
 
         # Creates tuple of (model_name, embedding, ansatz, features)
         models = create_combinations(self.classifiers,self.embeddings,self.ansatzs,self.features)
-
+        
 
         for model in models:
             
@@ -483,6 +531,7 @@ class QuantumClassifier():
                 accuracy = accuracy_score(y_test, y_pred, normalize=True)
                 b_accuracy = balanced_accuracy_score(y_test, y_pred)
                 f1 = f1_score(y_test, y_pred, average="weighted")
+                trainable = "~"
                 try:
                     roc_auc = roc_auc_score(y_test, y_pred)
                 except Exception as exception:
@@ -490,6 +539,8 @@ class QuantumClassifier():
                     if self.ignoreWarnings is False:
                         self.verboseprint("ROC AUC couldn't be calculated for " + name)
                         self.verboseprint(exception)
+                if self.predictions:
+                    predictions[f"{name}_{embedding}"] = y_pred
                
             elif name == "qnn":
                 if binary:
@@ -515,9 +566,9 @@ class QuantumClassifier():
                             auxTrain = X_train
                             auxTest = X_test
 
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor_binary(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train,y_test=y_test,runs=self.runs,seed=self.randomstate,verboseprint=self.verboseprint)
+                    trainable, preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor_binary(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train,y_test=y_test,runs=self.runs,seed=self.randomstate,verboseprint=self.verboseprint)
                     if self.predictions:
-                        predictions.append(preds)
+                        predictions[f"{name}_{embedding}_{ansatz}"] = preds
                 else:
                     y_train_o = one.fit_transform(y_train.reshape(-1,1))
                     y_test_o = one.transform(y_test.reshape(-1,1))
@@ -543,9 +594,9 @@ class QuantumClassifier():
                             auxTrain = X_train
                             auxTest = X_test
 
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,verboseprint=self.verboseprint)
+                    trainable, preds, accuracy, b_accuracy, f1, roc_auc = evaluate_full_model_predictor(qnn=qnn,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,verboseprint=self.verboseprint)
                     if self.predictions:
-                        predictions.append(preds)
+                        predictions[f"{name}_{embedding}_{ansatz}"] = preds
             elif "qnn_bag" in name:
                 if binary:
                     start = time.time()
@@ -570,9 +621,9 @@ class QuantumClassifier():
                             auxTrain = X_train
                             auxTest = X_test
                     
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor_binary(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train,y_test=y_test,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
+                    trainable, preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor_binary(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train,y_test=y_test,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
                     if self.predictions:
-                        predictions.append(preds)
+                        predictions[f"{name}_{embedding}_{ansatz}_{feature}"] = preds
                 else:
                     start = time.time()
                     y_train_o =one.fit_transform(y_train.reshape(-1,1))
@@ -597,9 +648,9 @@ class QuantumClassifier():
                         else:
                             auxTrain = X_train
                             auxTest = X_test
-                    preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
+                    trainable, preds, accuracy, b_accuracy, f1, roc_auc = evaluate_bagging_predictor(qnn=qnn_bag,optimizer=self.optimizer,epochs=self.epochs,n_qubits= 2**math.floor(math.log2(self.nqubits))if ansatz=="tree_tensor" else self.nqubits,layers=self.numLayers,ansatz=ansatz,X_train=auxTrain,X_test=auxTest,y_train=y_train_o,y_test=y_test_o,seed=self.randomstate,runs=self.runs,n_estimators=self.numPredictors,max_features=feature,max_samples=self.maxSamples,verboseprint=self.verboseprint)
                     if self.predictions:
-                        predictions.append(preds)
+                        predictions[f"{name}_{embedding}_{ansatz}_{feature}"] = preds
 
             NAMES.append(name)
             ANSATZ.append(ansatz)
@@ -609,10 +660,14 @@ class QuantumClassifier():
             EMBEDDINGS.append(embedding)
             F1.append(f1)
             TIME.append(time.time() - start)
+            PARAMETERS.append(trainable)
+
+            predictions = {}
 
             if self.customMetric is not None:
-                customMetric = self.customMetric(y_test, y_pred)
-                customMetric.append(customMetric)
+                customMetricV = self.customMetric(y_test, y_pred)
+                customMetric.append(customMetricV)
+
                 self.verboseprint(
                     {
                         "Model": NAMES[-1],
@@ -623,6 +678,7 @@ class QuantumClassifier():
                         "ROC AUC": ROC_AUC[-1],
                         "F1 Score": F1[-1],
                         self.customMetric.__name__: customMetric,
+                        "Trainable Parameters": PARAMETERS[-1],
                         "Time taken": TIME[-1],
                     }
                 )
@@ -636,6 +692,7 @@ class QuantumClassifier():
                         "Balanced Accuracy": B_ACCURACY[-1],
                         "ROC AUC": ROC_AUC[-1],
                         "F1 Score": F1[-1],
+                        "Trainable Parameters": PARAMETERS[-1],
                         "Time taken": TIME[-1],
                     }
                 )
@@ -652,6 +709,7 @@ class QuantumClassifier():
                     "Balanced Accuracy": B_ACCURACY,
                     "ROC AUC": ROC_AUC,
                     "F1 Score": F1,
+                    "Trainable Parameters": PARAMETERS,
                     "Time taken": TIME,
                 }
             )
@@ -666,14 +724,123 @@ class QuantumClassifier():
                     "ROC AUC": ROC_AUC,
                     "F1 Score": F1,
                     self.customMetric.__name__: customMetric,
+                    "Trainable Parameters": PARAMETERS,
                     "Time taken": TIME,
                 }
             )
-        scores = scores.sort_values(by="Balanced Accuracy", ascending=False).set_index(
-            "Model"
-        )
+        scores = scores.sort_values(by="Balanced Accuracy", ascending=False)
         if self.predictions:
             predictions_df = pd.DataFrame.from_dict(predictions)
         
-        print(scores.to_markdown())
-        return scores, predictions_df if self.predictions is True else scores
+        if showTable:
+            print(scores.to_markdown())
+        return scores, predictions_df if self.predictions is True else None
+    
+    def repeated_cross_validation(self, X, y, n_splits=5, n_repeats=10, showTable=True):
+        """x
+        Perform repeated cross-validation on the given dataset and model.
+
+        This method splits the dataset into multiple train-test splits using RepeatedStratifiedKFold,
+        fits the model on the training set, evaluates it on the validation set, and aggregates the results.
+
+        Parameters:
+        -----------
+        X : array-like
+            The input features for the dataset.
+        y : array-like
+            The target labels for the dataset.
+        n_splits : int, optional (default=5)
+            Number of folds in each repetition of the cross-validation.
+        n_repeats : int, optional (default=10)
+            Number of times cross-validation needs to be repeated.
+        showTable : bool, optional (default=True)
+            If True, prints the aggregated results in a tabular format.
+
+        Returns:
+        --------
+        mean_scores : pandas.DataFrame
+            A DataFrame containing the mean scores of each fold, grouped by 'Model', 'Embedding', and 'Ansatz'.
+        
+        Raises:
+        -------
+        ValueError
+            If X or y is None.
+        """
+        # Check if X and y are not None
+        if X is None or y is None:
+            raise ValueError("Input features X and target y must not be None")
+
+        # Ensure X and y are array-like
+        X = np.array(X)
+        y = np.array(y)
+    
+        # Initialize RepeatedStratifiedKFold
+        rkf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=self.randomstate)
+        all_scores = []
+
+        # Split the data and perform cross-validation
+        for train_index, val_index in rkf.split(X, y):
+            X_train, X_val = X[train_index], X[val_index]
+            y_train, y_val = y[train_index], y[val_index]
+
+            # Fit the model and get the scores for the current fold
+            scores, preds = self.fit(X_train=X_train, y_train=y_train, X_test=X_val, y_test=y_val,showTable=False)
+            all_scores.append(scores)
+
+        # Aggregate results by taking the mean of each score
+        mean_scores = pd.concat(all_scores).groupby(['Model', 'Embedding', 'Ansatz'], as_index=False).mean()
+        if showTable:
+            print(mean_scores.to_markdown())
+        return mean_scores
+    def leave_one_out(self, X, y, showTable=True):
+        """
+        Perform leave-one-out cross-validation on the given dataset and model.
+
+        This method splits the dataset into multiple train-test splits using LeaveOneOut,
+        fits the model on the training set, evaluates it on the validation set, and aggregates the results.
+
+        Parameters:
+        -----------
+        X : array-like
+            The input features for the dataset.
+        y : array-like
+            The target labels for the dataset.
+        showTable : bool, optional (default=True)
+            If True, prints the aggregated results in a tabular format.
+
+        Returns:
+        --------
+        mean_scores : pandas.DataFrame
+            A DataFrame containing the mean scores of each fold, grouped by 'Model', 'Embedding', and 'Ansatz'.
+        
+        Raises:
+        -------
+        ValueError
+            If X or y is None.
+        """
+        # Check if X and y are not None
+        if X is None or y is None:
+            raise ValueError("Input features X and target y must not be None")
+
+        # Ensure X and y are array-like
+        X = np.array(X)
+        y = np.array(y)
+
+        # Initialize LeaveOneOut
+        loo = LeaveOneOut()
+        all_scores = []
+
+        # Split the data and perform cross-validation
+        for train_index, val_index in loo.split(X):
+            X_train, X_val = X[train_index], X[val_index]
+            y_train, y_val = y[train_index], y[val_index]
+
+            # Fit the model and get the scores for the current fold
+            scores, preds = self.fit(X_train=X_train, y_train=y_train, X_test=X_val, y_test=y_val, showTable=False)
+            all_scores.append(scores)
+
+        # Aggregate results by taking the mean of each score
+        mean_scores = pd.concat(all_scores).groupby(['Model', 'Embedding', 'Ansatz'], as_index=False).mean()
+        if showTable:
+            print(mean_scores.to_markdown())
+        return mean_scores
