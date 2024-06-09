@@ -10,8 +10,8 @@
 - Free software: MIT License
 ## Quantum and High Performance Computing (QHPC) - University of Oviedo    
 - José Ranilla Pastor - ranilla@uniovi.es
-- Diego García Vega - garciavdiego@uniovi.es
 - Elías Fernández Combarro - efernandezca@uniovi.es
+- Diego García Vega - garciavdiego@uniovi.es
 - Fernando Álvaro Plou Llorente - ploufernando@uniovi.es
 - Alejandro Leal Castaño - lealcalejandro@uniovi.es
 - Group - https://qhpc.grupos.uniovi.es/
