@@ -22,7 +22,7 @@ class TestLazyqml(unittest.TestCase):
 
         q = QuantumClassifier(nqubits=4,classifiers=["all"])
 
-        scores = q.fit(X_train, X_test, y_train, y_test)
+        scores = q.fit(X_train, y_train, X_test, y_test)
 
         print(scores)
 
@@ -37,6 +37,6 @@ class TestLazyqml(unittest.TestCase):
 
         q = QuantumClassifier(nqubits=2,classifiers=["all"])
 
-        scores = q.fit(X_train, X_test, y_train, y_test)
+        scores = q.fit(X_train, y_train, X_test, y_test)
 
         print(scores)

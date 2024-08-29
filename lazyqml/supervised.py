@@ -662,7 +662,7 @@ class QuantumClassifier():
             TIME.append(time.time() - start)
             PARAMETERS.append(trainable)
 
-            predictions = {}
+            # predictions = {}
 
             if self.customMetric is not None:
                 customMetricV = self.customMetric(y_test, y_pred)
