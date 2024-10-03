@@ -10,6 +10,7 @@ from Circuits.RxEmbedding import *
 from Circuits.RyEmbedding import *
 from Circuits.RzEmbedding import *
 from Circuits.ZzEmbedding import *
+from Circuits.AmplitudeEmbedding import *
 
 
 class CircuitFactory:
@@ -35,6 +36,8 @@ class CircuitFactory:
             return RzEmbedding()
         elif embedding == Embedding.ZZ:
             return ZzEmbedding()
+        elif embedding == Embedding.AMP:
+            return AmplitudeEmbedding()
 
     def GetKernelCircuit(self,embedding):
         pass

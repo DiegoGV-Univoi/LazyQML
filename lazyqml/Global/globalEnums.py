@@ -20,6 +20,7 @@ class Embedding(Enum):
     RY = 4
     RZ = 5
     ZZ = 6
+    AMP = 7
 
 # Enum for selecting the Models
 class Model(Enum):
