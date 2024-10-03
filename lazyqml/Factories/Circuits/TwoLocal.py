@@ -3,8 +3,9 @@ import pennylane as qml
 import numpy as np
 
 class TwoLocal(Ansatz):
-    def __init__(self, nqubits):
+    def __init__(self, nqubits, nlayers):
         self.nqubits = nqubits
+        self.nlayers = nlayers
 
     def getCircuit(self):
         def TwoLocal(theta, wires):
@@ -18,11 +19,17 @@ class TwoLocal(Ansatz):
                 None
             """
             N=len(wires)
-            for i in range(N):
-                qml.RY(theta[i], wires = i)
-            for i in range(N - 1):
-                qml.CNOT(wires = [i, i + 1])
+
+            param_count = 0
+
+            for nl in range(self.nlayers):
+                for i in range(N):
+                    qml.RY(theta[param_count], wires = i)
+                    param_count += 1
+                for i in range(N - 1):
+                    qml.CNOT(wires = [i, i + 1])
+
         return TwoLocal
 
     def getParameters(self):
-        return  self.nqubits
+        return  self.nqubits * self.nlayers

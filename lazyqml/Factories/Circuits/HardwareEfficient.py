@@ -2,10 +2,12 @@ from Interfaces.iAnsatz import Ansatz
 import pennylane as qml
 
 class HardwareEfficient(Ansatz):
-    def __init__(self, nqubits):
-        self.nqubits = nqubits
+    def __init__(self, nqubits, nlayers):
 
-    def getCircuit():
+        self.nqubits = nqubits
+        self.nlayers = nlayers
+
+    def getCircuit(self):
         def hardware_efficient_ansatz(theta, wires):
             """Implements a hardware-efficient ansatz circuit.
 
@@ -16,30 +18,40 @@ class HardwareEfficient(Ansatz):
             Returns:
                 None
             """
-            N = len(wires)
-            assert len(theta) == 3 * N
+            param_count = 0
             
-            for i in range(N):
-                qml.RX(theta[3 * i], wires=wires[i])
-            
-            for i in range(N-1):
-                qml.CNOT(wires=[wires[i], wires[i + 1]])
-            qml.CNOT(wires=[wires[N-1],wires[0]])
-            
-            for i in range(N):
-                qml.RZ(theta[3 * i + 1], wires=wires[i])
-            
-            for i in range(N-1):
-                qml.CNOT(wires=[wires[i], wires[i + 1]])
-            qml.CNOT(wires=[wires[N-1],wires[0]])
+            for nl in range(self.nlayers):
 
-            for i in range(N):
-                qml.RX(theta[3 * i + 2], wires=wires[i])
-            
-            for i in range(N-1):
-                qml.CNOT(wires=[wires[i], wires[i + 1]])
-            qml.CNOT(wires=[wires[N-1],wires[0]])
+                N = len(wires)
+                assert len(theta) == 3 * N * self.nlayers
+                
+                for i in range(N):
+                    qml.RX(theta[param_count], wires=wires[i])
+                    param_count +=1
+                
+                for i in range(N-1):
+                    qml.CNOT(wires=[wires[i], wires[i + 1]])
+                qml.CNOT(wires=[wires[N-1],wires[0]])
+                
+                for i in range(N):
+                    qml.RZ(theta[param_count], wires=wires[i])
+                    param_count +=1
+                
+                for i in range(N-1):
+                    qml.CNOT(wires=[wires[i], wires[i + 1]])
+                qml.CNOT(wires=[wires[N-1],wires[0]])
+
+                for i in range(N):
+                    qml.RX(theta[param_count], wires=wires[i])
+                    param_count +=1
+                
+                for i in range(N-1):
+                    qml.CNOT(wires=[wires[i], wires[i + 1]])
+                qml.CNOT(wires=[wires[N-1],wires[0]])
+
         return hardware_efficient_ansatz
 
+    
+
     def getParameters(self):
-        return 3 * self.nqubits
+        return 3 * self.nqubits * self.nlayers

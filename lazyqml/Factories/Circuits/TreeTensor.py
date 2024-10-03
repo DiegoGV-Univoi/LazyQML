@@ -3,8 +3,9 @@ import pennylane as qml
 import numpy as np
 
 class TreeTensor(Ansatz):
-    def __init__(self, nqubits):
+    def __init__(self, nqubits, nlayers):
         self.nqubits = nqubits
+        self.nlayers = nlayers
 
     def getCircuit(self):
         def tree_tensor_ansatz(theta , wires):
@@ -17,18 +18,24 @@ class TreeTensor(Ansatz):
             Returns:
                 None
             """
-            n = len(self.wires)
-            dim = int(np.log2(n))
+            N = len(wires)
+
+            dim = int(np.log2(N))
+
             param_count = 0
-            for i in range (dim+1):
-                step = 2**i
-                for j in np.arange(0 , n , 2*step):
-                    qml.RY(theta[param_count] , wires = j)
-                    if(i<dim):
-                        qml.RY(theta[param_count + 1] , wires = j + step)
-                        qml.CNOT(wires = [j , j + step])
-                    param_count += 2
+
+            for nl in range(self.nlayers):
+                for i in range (dim+1):
+                    step = 2**i
+                    for j in np.arange(0 , N , 2*step):
+                        qml.RY(theta[param_count] , wires = j)
+                        param_count += 1
+                        if(i<dim):
+                            qml.RY(theta[param_count] , wires = j + step)
+                            param_count +=1
+                            qml.CNOT(wires = [j , j + step])
+
         return tree_tensor_ansatz
 
     def getParameters(self):
-        return 2 ** (self.nqubits - 1) - 1
+        return (2 ** (self.nqubits - 1) - 1) * self.nlayers
