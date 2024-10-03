@@ -7,7 +7,7 @@ from time import time
 import pennylane as qml
 
 
-class QNN(Model):
+class QNNPennylane(Model):
     def __init__(self, nqubits, ansatz, embedding, n_class, layers, epochs, lr=0.01) -> None:
         super().__init__()
         self.nqubits = nqubits
@@ -37,7 +37,7 @@ class QNN(Model):
 
         @qml.qnode(self.device, interface='autograd')
         def circuit(x, theta):
-            embedding(x, wires=range(self.nqubits))
+            embedding.getCircuit()(x, wires=range(self.nqubits))
             for i in range(self.layers):
                 ansatz(theta[i * self.params_per_layer: (i + 1) * self.params_per_layer], wires=range(self.nqubits))
             observable = [qml.expval(qml.PauliZ(wires=n)) for n in range(self.n_class)]
