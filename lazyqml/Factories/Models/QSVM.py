@@ -16,7 +16,8 @@ class QSVM(Model):
         self.embedding = embedding
         self.device = qml.device('lightning.gpu', wires=nqubits)
         self.CircuitFactory = CircuitFactory(nqubits)
-        self.kernel = self._build_kernel()
+        self.kernel_circ = self._build_kernel()
+        self.qkernel = self._quantum_kernel()
 
     def _build_kernel(self):
         """Build the quantum kernel using a given embedding and ansatz."""
@@ -28,7 +29,7 @@ class QSVM(Model):
         def kernel(x1, x2):
             embedding_circuit(x1, wires=range(self.nqubits))
             qml.adjoint(embedding_circuit)(x2, wires=range(self.nqubits))
-            return [qml.expval(qml.PauliZ(i)) for i in range(self.nqubits)]
+            return qml.probs(wires = range(self.nqubits))
         
         return kernel
     
@@ -41,14 +42,15 @@ class QSVM(Model):
 
         for i in range(num_samples_1):
             for j in range(num_samples_2):
-                kernel_matrix[i, j] = self.kernel(X1[i], X2[j]).sum()
+                kernel_matrix[i, j] = self.kernel_circ(X1[i], X2[j]).sum()
 
-        return kernel_matrix
+        #return kernel_matrix
+        return np.array([[self.kernel(x1 , x2)[0] for x2 in X2]for x1 in X1])
 
     def fit(self, X, y):
         # Train the classical SVM with the quantum kernel
         print("Training the SVM...")
-        self.svm = SVC(kernel=self.kernel)
+        self.svm = SVC(kernel=self.qkernel)
         self.svm.fit(X, y)
         print("SVM training complete.")
 
