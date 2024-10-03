@@ -5,10 +5,9 @@ import numpy as np
 class TreeTensor(Ansatz):
     def __init__(self, nqubits, nlayers):
         self.nqubits = nqubits
-        self.nlayers = nlayers
 
     def getCircuit(self):
-        def tree_tensor_ansatz(theta , wires):
+        def tree_tensor_ansatz(theta , wires, nlayers):
             """Implements a tree tensor network ansatz circuit.
 
             Args:
@@ -24,7 +23,7 @@ class TreeTensor(Ansatz):
 
             param_count = 0
 
-            for nl in range(self.nlayers):
+            for nl in range(nlayers):
                 for i in range (dim+1):
                     step = 2**i
                     for j in np.arange(0 , N , 2*step):
@@ -38,4 +37,4 @@ class TreeTensor(Ansatz):
         return tree_tensor_ansatz
 
     def getParameters(self):
-        return (2 ** (self.nqubits - 1) - 1) * self.nlayers
+        return (2 ** (self.nqubits - 1) - 1) 

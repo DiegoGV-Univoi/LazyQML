@@ -2,13 +2,12 @@ from Interfaces.iAnsatz import Ansatz
 import pennylane as qml
 
 class HardwareEfficient(Ansatz):
-    def __init__(self, nqubits, nlayers):
+    def __init__(self, nqubits):
 
         self.nqubits = nqubits
-        self.nlayers = nlayers
 
     def getCircuit(self):
-        def hardware_efficient_ansatz(theta, wires):
+        def hardware_efficient_ansatz(theta, wires, nlayers):
             """Implements a hardware-efficient ansatz circuit.
 
             Args:
@@ -20,7 +19,7 @@ class HardwareEfficient(Ansatz):
             """
             param_count = 0
             
-            for nl in range(self.nlayers):
+            for nl in range(nlayers):
 
                 N = len(wires)
                 assert len(theta) == 3 * N * self.nlayers
@@ -54,4 +53,4 @@ class HardwareEfficient(Ansatz):
     
 
     def getParameters(self):
-        return 3 * self.nqubits * self.nlayers
+        return 3 * self.nqubits 
