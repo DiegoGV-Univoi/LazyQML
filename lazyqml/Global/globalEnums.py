@@ -3,6 +3,7 @@ This file is devoted to define the global enums for easening the interface.
 """
 
 from enum import Enum
+
 # Enum for selecting the Ansatz circuits
 class Ansatz(Enum):
     ALL = 1
@@ -19,7 +20,7 @@ class Embedding(Enum):
     RY = 4
     RZ = 5
     ZZ = 6
-    
+
 # Enum for selecting the Models
 class Model(Enum):
     ALL = 1
