@@ -1,9 +1,16 @@
 # Importing Enums
 from Global.globalEnums import Ansatz, Embedding
 # Importing Ansatzs
-from Circuits import HardwareEfficient, HCzRx, TreeTensor, TwoLocal
+from Circuits.TwoLocal import *
+from Circuits.HardwareEfficient import *
+from Circuits.TreeTensor import *
+from Circuits.HCzRx import *
 # Importing Embeddings
-from Circuits import RxEmbedding, RyEmbedding, RzEmbedding, ZzEmbedding
+from Circuits.RxEmbedding import *
+from Circuits.RyEmbedding import *
+from Circuits.RzEmbedding import *
+from Circuits.ZzEmbedding import *
+
 
 class CircuitFactory:
     def __init__(self, Nqubits) -> None:
