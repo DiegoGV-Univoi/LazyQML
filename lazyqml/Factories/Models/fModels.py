@@ -6,8 +6,8 @@ class ModelFactory:
     def GetQSVM(self,ansatz, repetitions=1):
         pass
 
-    def GetQNN(self, embedding, ansatz,layers):
+    def GetQNN(self, embedding, ansatz):
         pass
 
-    def GetQNNBag(self,embedding, ansatz,layers):
+    def GetQNNBag(self,embedding, ansatz):
         pass
