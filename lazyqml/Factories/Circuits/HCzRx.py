@@ -5,7 +5,7 @@ class HCzRx(Ansatz):
     def __init__(self, nqubits):
         self.nqubits = nqubits
 
-    def getCircuit():
+    def getCircuit(self):
         def HCzRx(theta, wires):
             """Implements an ansatz circuit composed of Hadamard, CZ, and RX gates.
 
@@ -28,5 +28,6 @@ class HCzRx(Ansatz):
             for i in range(N):
                 qml.RX(theta[i], wires=wires[i])
         return HCzRx
+    
     def getParameters(self):
         return self.nqubits
