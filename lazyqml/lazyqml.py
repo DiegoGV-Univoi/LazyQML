@@ -1,5 +1,9 @@
+import numpy as np
+import pandas as pd
 
+from Factories.Preprocessing.fPreprocessing import PreprocessingFactory
 
+from Global.globalEnums import *
 
 class QuantumClassifier():
     """
@@ -147,7 +151,94 @@ class QuantumClassifier():
         pass
 
     def fit(self, X_train, y_train, X_test, y_test,showTable=True):
-        pass
+                
+
+        # Stuff to do
+
+        ### Preprocessing and data sanitization
+        if isinstance(X_train, np.ndarray):
+            X_train = pd.DataFrame(X_train)
+            X_test = pd.DataFrame(X_test)
+
+        y_test = y_test[~np.isnan(y_test)]
+        y_train = y_train[~np.isnan(y_train)]
+
+        ####
+
+        prepFactory = PreprocessingFactory(self.nqubits)
+        sanitizer = prepFactory.GetSanitizer(self.imputerCat, self.imputerNum)
+
+        # numeric_features = X_train.select_dtypes(include=[np.number]).columns
+        # categorical_features = X_train.select_dtypes(include=["object"]).columns
+
+        # preprocessor = ColumnTransformer(
+        #     transformers=[
+        #         ("numeric", self.numeric_transformer, numeric_features),
+        #         ("categorical_low", self.categorical_transformer, categorical_features),
+        #     ]
+        # )
+
+        # X_train=preprocessor.fit_transform(X_train)
+        # X_test=preprocessor.transform(X_test)
+
+        X_train = sanitizer.fit_transform(X_train)
+        X_test = sanitizer.transform(X_test)
+
+        tree_adjust = lambda x: 2**(x.bit_length()-1)
+
+        ####
+
+        # pca = PCA(n_components=self.nqubits)
+        # pca_amp = PCA(n_components=2**self.nqubits)
+        # pca_tree = PCA(n_components=2**math.floor(math.log2(self.nqubits)))
+        # pca_tree_amp = PCA(n_components=2**(math.floor(math.log2(self.nqubits))*2))
+
+        pca = prepFactory.GetPreprocessing(Preprocessing.PCA)
+        pca_amp = prepFactory.GetPreprocessing(Preprocessing.PCA_AMP)
+        pca_tree = prepFactory.GetPreprocessing(Preprocessing.PCA_TREE)
+        pca_tree_amp = prepFactory.GetPreprocessing(Preprocessing.PCA_TREE_AMP)
+
+        # X_train_amp = pca_amp.fit_transform(X_train) if 2**self.nqubits <= X_train.shape[1] else X_train
+        # X_test_amp = pca_amp.transform(X_test) if 2**self.nqubits <= X_test.shape[1] else X_test
+        
+        # X_train_tree = pca_tree.fit_transform(X_train) if 2**math.floor(math.log2(self.nqubits)) <= X_train.shape[1] else X_train
+        # X_test_tree = pca_tree.transform(X_test) if 2**math.floor(math.log2(self.nqubits)) <= X_test.shape[1] else X_test
+
+        # X_train_tree_amp = pca_tree_amp.fit_transform(X_train) if 2**(math.floor(math.log2(self.nqubits))*2) <= X_train.shape[1] else X_train
+        # X_test_tree_amp = pca_tree_amp.transform(X_test) if 2**(math.floor(math.log2(self.nqubits))*2) <= X_test.shape[1] else X_test
+
+        # Se establecen todos por defecto al original. Si el numero de qubits no es adecuado, se ajustara con el pca acorde en cada caso
+        X_train_amp = X_train
+        X_test_amp = X_test
+        X_train_tree = X_train
+        X_test_tree = X_test
+        X_train_tree_amp = X_train
+        X_test_tree_amp = X_test
+
+        if 2**self.nqubits <= X_train.shape[1]:
+            X_train_amp = pca_amp.fit_transform(X_train)
+            X_test_amp = pca_amp.fit_transform(X_test)
+
+        if tree_adjust(self.nqubits) <= X_train.shape[1]:
+            X_train_tree = pca_tree.fit_transform(X_train)
+            X_test_tree = pca_tree.fit_transform(X_test)
+        
+        if 2**tree_adjust(self.nqubits) <= X_train.shape[1]:
+            X_train_tree_amp = pca_tree_amp.fit_transform(X_train)
+            X_test_tree_amp = pca_tree_amp.fit_transform(X_test)
+
+        ####
+
+        # X_train = pca.fit_transform(X_train) if self.nqubits <= X_train.shape[1] else X_train
+        # X_test = pca.transform(X_test) if self.nqubits <= X_test.shape[1] else X_test
+
+        if self.nqubits <= X_train.shape[1]:
+            X_train = pca.fit_transform(X_train)
+            X_test = pca.fit_transform(X_test)
+
+        ####
+
+        # More stuff to do
 
     def repeated_cross_validation(self, X, y, n_splits=5, n_repeats=10, showTable=True):
         pass
