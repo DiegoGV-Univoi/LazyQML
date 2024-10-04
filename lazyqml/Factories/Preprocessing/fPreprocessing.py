@@ -13,7 +13,7 @@ class PreprocessingFactory:
     def __init__(self, nqubits) -> None:
         self.nqubits = nqubits
 
-    def GetPreprocessingTypes(self, imputerCat, imputerNum):
+    def GetSanitizer(self, imputerCat, imputerNum):
         return Sanitizer(imputerCat, imputerNum)
 
     def GetPreprocessing(self, prep):

@@ -19,11 +19,11 @@ class Sanitizer(Preprocessing):
             ]
         )
 
-    def fit(self, X, y):
-        return self.preprocessor.fit(X, y)
+    def fit(self, X):
+        return self.preprocessor.fit(X)
 
-    def fit_transform(self, X, y):
-        return self.preprocessor.fit_transform(X, y)
+    def fit_transform(self, X):
+        return self.preprocessor.fit_transform(X)
 
     def transform(self, X):
         return self.preprocessor.transform(X)
