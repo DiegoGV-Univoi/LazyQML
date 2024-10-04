@@ -8,7 +8,7 @@ from Interfaces.iCircuit import Circuit
 from Circuits.fCircuits import *
 
 class QNNTorch(Model):
-    def __init__(self, nqubits, ansatz, embedding, n_class, layers, epochs, lr=0.01, batch_size=50) -> None:
+    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, lr=0.01, batch_size=50) -> None:
         super().__init__()
         self.nqubits = nqubits
         self.ansatz = ansatz
