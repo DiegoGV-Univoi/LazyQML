@@ -36,3 +36,8 @@ class Preprocessing(Enum):
     PCA_TREE = 3
     PCA_TREE_AMP = 4
     TYPES = 5
+
+class Backend(Enum):
+    defaultQubit = "default.qubit"
+    lightningQubit = "lightning.qubit"
+    lightningGPU = "lightning.gpu"
