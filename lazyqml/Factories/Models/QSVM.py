@@ -45,7 +45,7 @@ class QSVM(Model):
                 kernel_matrix[i, j] = self.kernel_circ(X1[i], X2[j]).sum()
 
         #return kernel_matrix
-        return np.array([[self.kernel(x1 , x2)[0] for x2 in X2]for x1 in X1])
+        return np.array([[self.kernel_circ(x1 , x2)[0] for x2 in X2]for x1 in X1])
 
     def fit(self, X, y):
         # Train the classical SVM with the quantum kernel

@@ -38,9 +38,13 @@ class QNNPennylane(Model):
         @qml.qnode(self.device, interface='autograd')
         def circuit(x, theta):
             embedding.getCircuit()(x, wires=range(self.nqubits))
-            for i in range(self.layers):
-                ansatz(theta[i * self.params_per_layer: (i + 1) * self.params_per_layer], wires=range(self.nqubits))
-            observable = [qml.expval(qml.PauliZ(wires=n)) for n in range(self.n_class)]
+            
+            ansatz(theta, wires=range(self.nqubits), nlayers = self.layers)
+
+            if self.n_class==2:
+                observable = qml.expval(qml.PauliZ(0))
+            else:
+                observable = [qml.expval(qml.PauliZ(wires=n)) for n in range(self.n_class)]
             return np.array(observable)
         
         self.qnn = circuit

@@ -27,7 +27,10 @@ class QNNTorch(Model):
 
         # Initialize PyTorch optimizer and loss function
         self.opt = None  # Will initialize in fit method with model parameters
-        self.criterion = torch.nn.CrossEntropyLoss()
+        if self.n_class==2:
+            self.criterion = torch.nn.BCELoss()
+        else:
+            self.criterion = torch.nn.CrossEntropyLoss()
 
     def _build_circuit(self):
         # Get the ansatz and embedding circuits from the factory
@@ -41,15 +44,18 @@ class QNNTorch(Model):
         @qml.qnode(self.device, interface='torch', diff_method='adjoint')
         def circuit(x, theta):
             embedding.getCircuit()(x, wires=range(self.nqubits))
-            for i in range(self.layers):
-                ansatz(theta[i * self.params_per_layer: (i + 1) * self.params_per_layer], wires=range(self.nqubits))
-            observable = [qml.expval(qml.PauliZ(wires=n)) for n in range(self.n_class)]
+            
+            ansatz(theta, wires=range(self.nqubits), nlayers = self.layers)
+            if self.n_class==2:
+                observable = qml.expval(qml.PauliZ(0))
+            else:
+                observable = [qml.expval(qml.PauliZ(wires=n)) for n in range(self.n_class)]
             return torch.tensor(observable)
 
         self.qnn = circuit
 
     def forward(self, x, theta):
-        return self.qnn(x, theta)
+        return (self.qnn(x, theta) + 1)/2
 
     def fit(self, X, y):
         # Convert training data to torch tensors and transfer to device (CPU or GPU)
