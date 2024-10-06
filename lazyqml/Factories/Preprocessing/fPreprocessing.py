@@ -1,12 +1,12 @@
 # Importing Enums
-from Global.globalEnums import Preprocessing
+from Global.globalEnums import *
 
 # Importing Preprocessings
-from Preprocessing.Pca import *
-from Preprocessing.PcaAmp import *
-from Preprocessing.PcaTree import *
-from Preprocessing.PcaTreeAmp import *
-from Preprocessing.Sanitizer import *
+from Factories.Preprocessing.Pca import *
+from Factories.Preprocessing.PcaAmp import *
+from Factories.Preprocessing.PcaTree import *
+from Factories.Preprocessing.PcaTreeAmp import *
+from Factories.Preprocessing.Sanitizer import *
 
 
 class PreprocessingFactory:
