@@ -10,11 +10,7 @@ from Interfaces.iModel import Model
 from Circuits.fCircuits import CircuitFactory
 
 class QSVM(Model):
-<<<<<<< Updated upstream
-    def __init__(self, nqubits, embedding, backend):
-=======
-    def __init__(self, nqubits, embedding, shots):
->>>>>>> Stashed changes
+    def __init__(self, nqubits, embedding, backend, shots):
         super().__init__()
         self.nqubits = nqubits
         self.embedding = embedding

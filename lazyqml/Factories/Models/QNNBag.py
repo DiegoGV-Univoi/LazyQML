@@ -9,11 +9,7 @@ from Circuits.fCircuits import *
 
 class QNNBag(Model):
 
-<<<<<<< Updated upstream
-    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, max_samples, n_samples, max_features, n_features, n_estimators, lr=0.01, batch_size=50) -> None:
-=======
-    def __init__(self, nqubits, ansatz, embedding, n_class, layers, epochs, max_samples, n_samples, max_features, n_features, n_estimators, shots, lr=0.01, batch_size=50) -> None:
->>>>>>> Stashed changes
+    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, max_samples, n_samples, max_features, n_features, n_estimators, shots, lr=0.01, batch_size=50) -> None:
         super().__init__()
         self.nqubits = int(n_features * max_features)
         self.ansatz = ansatz
