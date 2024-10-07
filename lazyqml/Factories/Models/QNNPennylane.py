@@ -8,16 +8,21 @@ import pennylane as qml
 
 
 class QNNPennylane(Model):
+<<<<<<< Updated upstream
     def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, lr=0.01) -> None:
+=======
+    def __init__(self, nqubits, ansatz, embedding, n_class, layers, epochs, shots, lr=0.01) -> None:
+>>>>>>> Stashed changes
         super().__init__()
         self.nqubits = nqubits
         self.ansatz = ansatz
+        self.shots = shots
         self.embedding = embedding
         self.n_class = n_class
         self.layers = layers
         self.epochs = epochs
         self.lr = lr
-        self.device = qml.device("lightning.gpu", wires=nqubits)
+        self.device = qml.device("lightning.gpu", wires=nqubits, shots=self.shots)
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(nqubits)
         self.qnn = None

@@ -10,11 +10,16 @@ from Interfaces.iModel import Model
 from Circuits.fCircuits import CircuitFactory
 
 class QSVM(Model):
+<<<<<<< Updated upstream
     def __init__(self, nqubits, embedding, backend):
+=======
+    def __init__(self, nqubits, embedding, shots):
+>>>>>>> Stashed changes
         super().__init__()
         self.nqubits = nqubits
         self.embedding = embedding
-        self.device = qml.device('lightning.gpu', wires=nqubits)
+        self.shots = shots
+        self.device = qml.device('lightning.gpu', wires=nqubits, shots=self.shots)
         self.CircuitFactory = CircuitFactory(nqubits)
         self.kernel_circ = self._build_kernel()
         self.qkernel = self._quantum_kernel()

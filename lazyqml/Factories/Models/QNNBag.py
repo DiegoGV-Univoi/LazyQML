@@ -9,10 +9,15 @@ from Circuits.fCircuits import *
 
 class QNNBag(Model):
 
+<<<<<<< Updated upstream
     def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, max_samples, n_samples, max_features, n_features, n_estimators, lr=0.01, batch_size=50) -> None:
+=======
+    def __init__(self, nqubits, ansatz, embedding, n_class, layers, epochs, max_samples, n_samples, max_features, n_features, n_estimators, shots, lr=0.01, batch_size=50) -> None:
+>>>>>>> Stashed changes
         super().__init__()
         self.nqubits = int(n_features * max_features)
         self.ansatz = ansatz
+        self.shots = shots
         self.embedding = embedding
         self.n_class = n_class
         self.layers = layers
@@ -22,7 +27,7 @@ class QNNBag(Model):
         self.max_samples = max_samples
         self.max_features = max_features
         self.n_estimators = n_estimators
-        self.device = qml.device("lightning.gpu", wires=nqubits)
+        self.device = qml.device("lightning.gpu", wires=nqubits, shots=self.shots)
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(nqubits)
         self.qnn = None
