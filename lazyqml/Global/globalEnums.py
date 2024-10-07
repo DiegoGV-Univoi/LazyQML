@@ -4,8 +4,13 @@ This file is devoted to define the global enums for easening the interface.
 
 from enum import Enum
 
+class BaseEnum(Enum):
+    @classmethod
+    def list(cls):
+        return list(cls)
+
 # Enum for selecting the Ansatz circuits
-class Ansatz(Enum):
+class Ansatz(BaseEnum):
     ALL = 1
     HCZRX = 2
     TREE_TENSOR = 3
@@ -13,7 +18,7 @@ class Ansatz(Enum):
     HARDWARE_EFFICIENT = 5
 
 # Enum for selecting the Embedding circuits
-class Embedding(Enum):
+class Embedding(BaseEnum):
     ALL = 1
     RX = 2
     RZ = 3
@@ -22,7 +27,7 @@ class Embedding(Enum):
     AMP = 6
 
 # Enum for selecting the Models
-class Model(Enum):
+class Model(BaseEnum):
     ALL = 1
     QNN = 2
     QNN_BAG = 3
