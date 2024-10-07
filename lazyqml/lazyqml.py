@@ -25,7 +25,7 @@ class QuantumClassifier(BaseModel):
     classifiers: Annotated[List[Model], Field(min_items=1)] = [Model.ALL]
     ansatzs: Annotated[List[Ansatz], Field(min_items=1)] = [Ansatz.ALL]
     embeddings: Annotated[List[Embedding], Field(min_items=1)] = [Embedding.ALL]
-    backend: Backend = Backend.defaultQubit
+    backend: Backend = Backend.lightningQubit
     features: Annotated[List[float], Field(min_items=1)] = [0.3, 0.5, 0.8]
     learningRate: Annotated[float, Field(gt=0)] = 0.01
     epochs: Annotated[int, Field(gt=0)] = 100
