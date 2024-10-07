@@ -1,10 +1,11 @@
-from pydantic import BaseModel, ValidationError, field_validator
+from pydantic import BaseModel, ValidationError, field_validator , ConfigDict
 from typing import Callable
 import inspect
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import numpy as np
 from typing import Any
+import pandas as pd
 
 class MetricValidator(BaseModel):
     metric: Callable  # Accept any callable (function)
@@ -134,3 +135,39 @@ class PreprocessorValidator(BaseModel):
 #     invalid_return_preprocessor = PreprocessorValidator(preprocessor=InvalidReturnPreprocessor())
 # except ValidationError as e:
 #     print(f"Validation failed: {e}")
+
+class FitParamsValidator(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)  # Allow arbitrary types like DataFrame
+
+    train_x: pd.DataFrame
+    train_y: pd.DataFrame
+    test_x: pd.DataFrame
+    test_y: pd.DataFrame
+
+    # Static method to check matching sizes
+    @staticmethod
+    def _check_size(df1: pd.DataFrame, df2: pd.DataFrame, name1: str, name2: str):
+        if len(df1) != len(df2):
+            raise ValueError(f"{name1} and {name2} must have the same number of examples. "
+                             f"Got {len(df1)} and {len(df2)}.")
+
+    # Ensure all inputs are DataFrames
+    @field_validator("train_x", "train_y", "test_x", "test_y")
+    def check_dataframe(cls, value):
+        if not isinstance(value, pd.DataFrame):
+            raise TypeError(f"Expected a pandas DataFrame, but got {type(value).__name__}")
+        return value
+
+    # Validate that train_x and train_y have the same size
+    @field_validator("train_y")
+    def validate_train_size(cls, train_y, info):
+        if 'train_x' in info.data:  # Use info.data to access previously validated values
+            cls._check_size(info.data['train_x'], train_y, 'train_x', 'train_y')
+        return train_y
+
+    # Validate that test_x and test_y have the same size
+    @field_validator("test_y")
+    def validate_test_size(cls, test_y, info):
+        if 'test_x' in info.data:  # Use info.data to access previously validated values
+            cls._check_size(info.data['test_x'], test_y, 'test_x', 'test_y')
+        return test_y
