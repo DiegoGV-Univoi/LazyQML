@@ -19,7 +19,7 @@ class QNNTorch(Model):
         self.epochs = epochs
         self.lr = lr
         self.batch_size = batch_size
-        self.device = qml.device("lightning.gpu", wires=nqubits, shots =self.shots)
+        self.device = qml.device(backend.value, wires=nqubits)
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(nqubits)
         self.qnn = None

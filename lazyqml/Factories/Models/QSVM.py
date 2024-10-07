@@ -15,7 +15,7 @@ class QSVM(Model):
         self.nqubits = nqubits
         self.embedding = embedding
         self.shots = shots
-        self.device = qml.device('lightning.gpu', wires=nqubits, shots=self.shots)
+        self.device = qml.device(backend.value, wires=nqubits)
         self.CircuitFactory = CircuitFactory(nqubits)
         self.kernel_circ = self._build_kernel()
         self.qkernel = self._quantum_kernel()
