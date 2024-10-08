@@ -1,15 +1,16 @@
 # Importing Enums
 from Global.globalEnums import Ansatz, Embedding
 # Importing Ansatzs
-from Circuits.TwoLocal import *
-from Circuits.HardwareEfficient import *
-from Circuits.TreeTensor import *
-from Circuits.HCzRx import *
+from Factories.Circuits.TwoLocal import *
+from Factories.Circuits.HardwareEfficient import *
+from Factories.Circuits.TreeTensor import *
+from Factories.Circuits.HCzRx import *
 # Importing Embeddings
-from Circuits.RxEmbedding import *
-from Circuits.RyEmbedding import *
-from Circuits.RzEmbedding import *
-from Circuits.ZzEmbedding import *
+from Factories.Circuits.RxEmbedding import *
+from Factories.Circuits.RyEmbedding import *
+from Factories.Circuits.RzEmbedding import *
+from Factories.Circuits.ZzEmbedding import *
+from Factories.Circuits.AmplitudeEmbedding import *
 
 
 class CircuitFactory:
@@ -35,7 +36,8 @@ class CircuitFactory:
             return RzEmbedding()
         elif embedding == Embedding.ZZ:
             return ZzEmbedding()
-
+        elif embedding == Embedding.AMP:
+            return AmplitudeEmbedding()
     def GetKernelCircuit(self,embedding):
         pass
         

@@ -5,10 +5,10 @@ import numpy as np
 from Interfaces.iModel import Model
 from Interfaces.iAnsatz import Ansatz
 from Interfaces.iCircuit import Circuit
-from Circuits.fCircuits import *
+from Factories.Circuits.fCircuits import *
 
 class QNNTorch(Model):
-    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, shots, lr, batch_size) -> None:
+    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, shots, lr, batch_size, seed=1234) -> None:
         super().__init__()
         self.nqubits = nqubits
         self.ansatz = ansatz
@@ -19,7 +19,7 @@ class QNNTorch(Model):
         self.epochs = epochs
         self.lr = lr
         self.batch_size = batch_size
-        self.device = qml.device(backend.value, wires=nqubits)
+        self.device = qml.device(backend.value, wires=nqubits, seed=seed)
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(nqubits)
         self.qnn = None

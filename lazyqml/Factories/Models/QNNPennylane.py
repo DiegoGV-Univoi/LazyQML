@@ -1,14 +1,14 @@
 from Interfaces.iModel import Model
 from Interfaces.iAnsatz import Ansatz
 from Interfaces.iCircuit import Circuit
-from Circuits.fCircuits import *
+from Factories.Circuits.fCircuits import *
 
 from time import time
 import pennylane as qml
 
 
 class QNNPennylane(Model):
-    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, shots, lr=0.01) -> None:
+    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, shots, lr=0.01, seed=1234) -> None:
         super().__init__()
         self.nqubits = nqubits
         self.ansatz = ansatz
@@ -18,7 +18,7 @@ class QNNPennylane(Model):
         self.layers = layers
         self.epochs = epochs
         self.lr = lr
-        self.device = qml.device(backend.value, wires=nqubits)
+        self.device = qml.device(backend.value, wires=nqubits, seed=seed)
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(nqubits)
         self.qnn = None

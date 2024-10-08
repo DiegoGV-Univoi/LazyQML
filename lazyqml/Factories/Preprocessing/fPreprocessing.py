@@ -16,12 +16,25 @@ class PreprocessingFactory:
     def GetSanitizer(self, imputerCat, imputerNum):
         return Sanitizer(imputerCat, imputerNum)
 
-    def GetPreprocessing(self, prep):
-        if prep == Preprocessing.PCA:
-            return Pca(self.nqubits)
-        elif prep == Preprocessing.PCA_AMP:
-            return PcaAmp(self.nqubits)
-        elif prep == Preprocessing.PCA_TREE:
-            return PcaTree(self.nqubits)
-        elif prep == Preprocessing.PCA_TREE_AMP:
+    def GetPreprocessing(self, embedding, ansatz):
+        if embedding == Embedding.AMP and ansatz == Ansatz.TREE_TENSOR:
             return PcaTreeAmp(self.nqubits)
+        elif embedding == Embedding.AMP:
+            return PcaAmp(self.nqubits)
+        elif ansatz == Ansatz.TREE_TENSOR:
+            return PcaTree(self.nqubits)
+        else:
+            return Pca(self.nqubits)
+       
+        """
+        Deprecated
+
+        # if prep == Preprocessing.PCA:
+        #     return Pca(self.nqubits)
+        # elif prep == Preprocessing.PCA_AMP:
+        #     return PcaAmp(self.nqubits)
+        # elif prep == Preprocessing.PCA_TREE:
+        #     return PcaTree(self.nqubits)
+        # elif prep == Preprocessing.PCA_TREE_AMP:
+        #     return PcaTreeAmp(self.nqubits)
+        """

@@ -1,0 +1,2 @@
+def executeQNNBag(combinations):
+    pass

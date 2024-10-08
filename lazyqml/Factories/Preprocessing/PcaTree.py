@@ -7,11 +7,11 @@ class PcaTree(Preprocessing):
 
         self.preprocessing = PCA(n_components=2**(self.nqubits.bit_length()-1))
 
-    def fit(X, y, self):
+    def fit(self, X, y):
         return self.preprocessing.fit(X, y)
 
-    def fit_transform(X, y, self):
-        return self.preprocessing.fit(X, y)
+    def fit_transform(self, X, y):
+        return self.preprocessing.fit_transform(X, y)
 
-    def transform(X, self):
-        return self.preprocessing.fit(X)
+    def transform(self, X):
+        return self.preprocessing.tranform(X)

@@ -5,11 +5,11 @@ import numpy as np
 from Interfaces.iModel import Model
 from Interfaces.iAnsatz import Ansatz
 from Interfaces.iCircuit import Circuit
-from Circuits.fCircuits import *
+from Factories.Circuits.fCircuits import *
 
 class QNNBag(Model):
 
-    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, max_samples, n_samples, max_features, n_features, n_estimators, shots, lr=0.01, batch_size=50) -> None:
+    def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, max_samples, n_samples, max_features, n_features, n_estimators, shots, lr=0.01, batch_size=50, seed=1234) -> None:
         super().__init__()
         self.nqubits = int(n_features * max_features)
         self.ansatz = ansatz
@@ -23,7 +23,7 @@ class QNNBag(Model):
         self.max_samples = max_samples
         self.max_features = max_features
         self.n_estimators = n_estimators
-        self.device = qml.device(backend.value, wires=nqubits)
+        self.device = qml.device(backend.value, wires=nqubits, seed=seed)
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(nqubits)
         self.qnn = None
