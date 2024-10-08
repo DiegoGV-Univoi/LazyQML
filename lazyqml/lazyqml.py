@@ -10,7 +10,7 @@ from Factories.Preprocessing.fPreprocessing import PreprocessingFactory
 from Global.globalEnums import *
 from Utils.Utils import *
 from Utils.Validator import *
-from Factories.Dispatchers.SequentialDispatcher import *
+from Factories.Dispatchers.Dispatcher import *
 
 
 class QuantumClassifier(BaseModel):
@@ -82,10 +82,11 @@ class QuantumClassifier(BaseModel):
     randomstate: int = 1234
     predictions: bool = False
     ignoreWarnings: bool = True
+    sequential: bool = True
     numPredictors: Annotated[int, Field(gt=0)] = 10
     numLayers: Annotated[int, Field(gt=0)] = 5
     classifiers: Annotated[List[Model], Field(min_items=1)] = [Model.ALL]
-    ansatzs: Annotated[List[Ansatz], Field(min_items=1)] = [Ansatz.ALL]
+    ansatzs: Annotated[List[Ansatzs], Field(min_items=1)] = [Ansatzs.ALL]
     embeddings: Annotated[List[Embedding], Field(min_items=1)] = [Embedding.ALL]
     backend: Backend = Backend.lightningQubit
     features: Annotated[List[float], Field(min_items=1)] = [0.3, 0.5, 0.8]
@@ -93,6 +94,8 @@ class QuantumClassifier(BaseModel):
     epochs: Annotated[int, Field(gt=0)] = 100
     shots: Annotated[int, Field(gt=0)] = 1
     runs: Annotated[int, Field(gt=0)] = 1
+    batchSize: Annotated[int, Field(gt=0)] = 8
+    threshold: Annotated[int, Field(gt=0)] = 26
     maxSamples: Annotated[float, Field(gt=0, le=1)] = 1.0
     verbose: bool = False
     customMetric: Optional[MetricValidator] = None
@@ -118,9 +121,8 @@ class QuantumClassifier(BaseModel):
         
         # Fix seed
         fixSeed(self.randomstate)
-        
-        dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots)
- 
+        d = Dispatcher(sequential=self.sequential,threshold=self.threshold)
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,sequential=self.sequential,threshold=self.threshold,batch=self.batchSize)
     def repeated_cross_validation(self, X, y, n_splits=5, n_repeats=10, showTable=True):
         pass
 
@@ -136,9 +138,9 @@ def custom_invalid_metric(a, b):
     return [1, 0, 1, 0]  # Invalid return type
 
 
-classifier = QuantumClassifier(nqubits=4,classifiers=[Model.QSVM])
+classifier = QuantumClassifier(nqubits=4,classifiers=[Model.QSVM],embeddings=[Embedding.ALL])
 print("QuantumClassifier successfully validated!!")
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
 # Load data
 data = load_iris()
@@ -146,6 +148,6 @@ X = data.data
 y = data.target
 
 # Split data
-X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.6,random_state =1234)  
+X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.9,random_state =1234)  
 
 classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)

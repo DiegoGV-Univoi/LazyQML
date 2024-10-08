@@ -25,7 +25,7 @@ class QNNBag(Model):
         self.n_estimators = n_estimators
         self.device = qml.device(backend.value, wires=nqubits, seed=seed)
         self.params_per_layer = None
-        self.circuit_factory = CircuitFactory(nqubits)
+        self.circuit_factory = CircuitFactory(nqubits,nlayers=layers)
         self.qnn = None
         self.params = None
         self._build_circuit()
@@ -151,3 +151,7 @@ class QNNBag(Model):
         y_predictions = y_predictions/self.n_estimators
 
         return torch.argmax(y_predictions, dim=1).cpu().numpy()
+
+    def getTrainableParameters(self):
+        print(self.params)
+        #return torch.numel(self.params)

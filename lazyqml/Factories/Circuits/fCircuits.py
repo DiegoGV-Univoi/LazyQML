@@ -1,5 +1,5 @@
 # Importing Enums
-from Global.globalEnums import Ansatz, Embedding
+from Global.globalEnums import Ansatzs, Embedding
 # Importing Ansatzs
 from Factories.Circuits.TwoLocal import *
 from Factories.Circuits.HardwareEfficient import *
@@ -14,18 +14,19 @@ from Factories.Circuits.AmplitudeEmbedding import *
 
 
 class CircuitFactory:
-    def __init__(self, Nqubits) -> None:
+    def __init__(self, Nqubits,nlayers) -> None:
         self.nqubits = Nqubits 
+        self.nlayers = nlayers
 
     def GetAnsatzCircuit(self,ansatz):
-        if ansatz == Ansatz.HARDWARE_EFFICIENT:
+        if ansatz == Ansatzs.HARDWARE_EFFICIENT:
             return HardwareEfficient(self.nqubits)
-        elif ansatz == Ansatz.HCZRX:
+        elif ansatz == Ansatzs.HCZRX:
             return HCzRx(self.nqubits)
-        elif ansatz == Ansatz.TREE_TENSOR:
-            return TreeTensor(self.nqubits)
-        elif ansatz == Ansatz.TWO_LOCAL:
-            return TwoLocal(self.nqubits)
+        elif ansatz == Ansatzs.TREE_TENSOR:
+            return TreeTensor(self.nqubits, nlayers=self.nlayers)
+        elif ansatz == Ansatzs.TWO_LOCAL:
+            return TwoLocal(self.nqubits, nlayers=self.nlayers)
 
     def GetEmbeddingCircuit(self, embedding):
         if embedding == Embedding.RX:

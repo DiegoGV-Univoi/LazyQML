@@ -10,7 +10,7 @@ class BaseEnum(Enum):
         return list(cls)
 
 # Enum for selecting the Ansatz circuits
-class Ansatz(BaseEnum):
+class Ansatzs(BaseEnum):
     ALL = 1
     HCZRX = 2
     TREE_TENSOR = 3

@@ -84,35 +84,32 @@ def create_enum_combinations(classifiers, embeddings, ansatzs, features):
 from itertools import product
 
 def create_enum_combinations(classifiers, embeddings, ansatzs, features):
-    combinationsQSVM = []
-    combinationsQNN = []
-    combinationsQNNBag = []
+    combinations = []
     
     # Check for "ALL" in the classifiers, embeddings, and ansatzs
     if Model.ALL in classifiers:
         classifiers = [Model.QSVM, Model.QNN, Model.QNN_BAG]
     if Embedding.ALL in embeddings:
         embeddings = [Embedding.RX, Embedding.RZ, Embedding.RY, Embedding.ZZ, Embedding.AMP]
-    if Ansatz.ALL in ansatzs:
-        ansatzs = [Ansatz.HCZRX, Ansatz.TREE_TENSOR, Ansatz.TWO_LOCAL, Ansatz.HARDWARE_EFFICIENT, None]
+    if Ansatzs.ALL in ansatzs:
+        ansatzs = [Ansatzs.HCZRX, Ansatzs.TREE_TENSOR, Ansatzs.TWO_LOCAL, Ansatzs.HARDWARE_EFFICIENT, None]
 
     # Generate combinations with the constraints
     for classifier, embedding, ansatz, feature in product(classifiers, embeddings, ansatzs, features + [None]):
         if classifier == Model.QSVM:
             # For "QSVM", ansatz and feature should be None
             if ansatz is None and feature is None:
-                combinationsQSVM.append((classifier, embedding, ansatz, feature))
+                combinations.append((classifier, embedding, ansatz, feature))
         elif classifier == Model.QNN:
             # For "QNN", feature should be None and ansatz cannot be None
             if feature is None and ansatz is not None:
-                combinationsQNN.append((classifier, embedding, ansatz, feature))
+                combinations.append((classifier, embedding, ansatz, feature))
         elif classifier == Model.QNN_BAG:
             # For "QNN_BAG", ansatz and feature cannot be None
             if embedding is not None and ansatz is not None and feature is not None:
-                combinationsQNNBag.append((classifier, embedding, ansatz, feature))
+                combinations.append((classifier, embedding, ansatz, feature))
                 
-    return combinationsQSVM, combinationsQNN, combinationsQNNBag
-
+    return combinations 
 
 def fixSeed(seed):
     np.random.seed(seed=seed)

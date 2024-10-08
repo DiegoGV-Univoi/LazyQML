@@ -14,7 +14,7 @@ class QnnCircuit(Circuit):
 
         def qnn_circ(a):
 
-            EmbeddingFactory.GetEmbeddingCircuit(self.embedding)(a, wires = range(self.nqubits))
+            CircuitFactory.GetEmbeddingCircuit(self.embedding)(a, wires = range(self.nqubits))
             CircuitFactory.GetAnsatzCircuit(self.ansatz)(self.nqubits, self.nlayers)
 
         return qnn_circ

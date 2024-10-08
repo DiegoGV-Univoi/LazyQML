@@ -21,7 +21,7 @@ def executeQSVM(combinations, nqubits, backend, shots, runs, X_train, y_train, X
     models = []
     
     
-     # Convert input data to pandas DataFrames if they aren't already
+    # Convert input data to pandas DataFrames if they aren't already
     if not isinstance(X_train, pd.DataFrame):
         X_train = pd.DataFrame(X_train)
     if not isinstance(X_test, pd.DataFrame):

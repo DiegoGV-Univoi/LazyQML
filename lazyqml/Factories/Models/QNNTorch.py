@@ -21,7 +21,7 @@ class QNNTorch(Model):
         self.batch_size = batch_size
         self.device = qml.device(backend.value, wires=nqubits, seed=seed)
         self.params_per_layer = None
-        self.circuit_factory = CircuitFactory(nqubits)
+        self.circuit_factory = CircuitFactory(nqubits,nlayers=layers)
         self.qnn = None
         self.params = None
         self._build_circuit()
@@ -35,18 +35,19 @@ class QNNTorch(Model):
 
     def _build_circuit(self):
         # Get the ansatz and embedding circuits from the factory
-        ansatz: Ansatz = self.circuit_factory.GetAnsatzCircuit(self.ansatz).getCircuit()
+        ansatz: Ansatzs = self.circuit_factory.GetAnsatzCircuit(self.ansatz)
         embedding: Circuit = self.circuit_factory.GetEmbeddingCircuit(self.embedding)
 
         # Retrieve parameters per layer from the ansatz
         self.params_per_layer = ansatz.getParameters()
+        
 
         # Define the quantum circuit as a PennyLane qnode
         @qml.qnode(self.device, interface='torch', diff_method='adjoint')
         def circuit(x, theta):
             embedding.getCircuit()(x, wires=range(self.nqubits))
             
-            ansatz(theta, wires=range(self.nqubits), nlayers = self.layers)
+            ansatz.getCircuit()(theta, wires=range(self.nqubits), nlayers = self.layers)
             if self.n_class==2:
                 observable = qml.expval(qml.PauliZ(0))
             else:
@@ -55,10 +56,55 @@ class QNNTorch(Model):
 
         self.qnn = circuit
 
+
     def forward(self, x, theta):
         return (self.qnn(x, theta) + 1)/2
 
     def fit(self, X, y):
+        # Convert training data to torch tensors and transfer to device (CPU or GPU)
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        print(f"Training on: {device}")
+
+        X_train = torch.tensor(X, dtype=torch.float32).to(device)
+        y_train = torch.tensor(y, dtype=torch.long).to(device)
+
+        # Ensure integer number of parameters
+        num_params = int(self.layers * self.params_per_layer)
+        print(f"Initializing {num_params} parameters")
+
+        # Initialize parameters as torch tensors - FIXED LINE
+        params = torch.randn((num_params,), device=device, requires_grad=True)
+
+        # Define optimizer
+        self.opt = torch.optim.Adam([params], lr=self.lr)
+
+        # Create data loader for batching
+        data_loader = torch.utils.data.DataLoader(
+            list(zip(X_train, y_train)), batch_size=self.batch_size, shuffle=True, drop_last=True
+        )
+        start_time = time()
+
+        for epoch in range(self.epochs):
+            epoch_loss = 0.0
+            for batch_X, batch_y in data_loader:
+                self.opt.zero_grad()
+                # Forward pass
+                predictions = torch.stack([self.forward(x, params) for x in batch_X])
+                # Compute loss
+                loss = self.criterion(predictions, batch_y)
+                # Backward pass and optimization step
+                loss.backward()
+                self.opt.step()
+                epoch_loss += loss.item()
+
+            # Print the average loss for the epoch
+            print(f"Epoch {epoch+1}/{self.epochs}, Loss: {epoch_loss/len(data_loader):.4f}")
+
+        print(f"Training completed in {time() - start_time:.2f} seconds")
+        self.params = params.detach().cpu()  # Save trained parameters
+
+
+    def _fit(self, X, y):
         # Convert training data to torch tensors and transfer to device (CPU or GPU)
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         print(f"Training on: {device}")
@@ -107,3 +153,7 @@ class QNNTorch(Model):
         y_pred = torch.softmax(y_pred, dim=1)
         # Return the class with the highest probability
         return torch.argmax(y_pred, dim=1).cpu().numpy()
+
+    def getTrainableParameters(self):
+        print(self.params)
+        

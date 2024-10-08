@@ -15,7 +15,7 @@ class QSVM(Model):
         self.embedding = embedding
         self.shots = shots
         self.device = qml.device(backend.value, wires=nqubits, seed=seed)
-        self.CircuitFactory = CircuitFactory(nqubits)
+        self.CircuitFactory = CircuitFactory(nqubits,nlayers=0)
         self.kernel_circ = self._build_kernel()
         self.qkernel = None
         self.X_train = None
@@ -75,6 +75,8 @@ class QSVM(Model):
         except Exception as e:
             print(f"Error during prediction: {str(e)}")
             raise
+    def getTrainableParameters(self):
+        return "~"
 
     # def predict(self, X):
     #     kernel_test = self._quantum_kernel(X, self.svm.support_vectors_)
