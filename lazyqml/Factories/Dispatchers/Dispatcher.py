@@ -58,7 +58,7 @@ class Dispatcher:
 
         numClasses = len(np.unique(y_train))
 
-        combinations = create_enum_combinations(classifiers=classifiers,embeddings=embeddings,features=features,ansatzs=ansatzs)
+        combinations = create_combinations(classifiers=classifiers,embeddings=embeddings,features=features,ansatzs=ansatzs)
         
         if (numClasses > 2**math.floor(math.log2(nqubits))):
             print("The number of qubits must exceed the number of classes and be a power of 2 to execute all circuits successfully. \nEnsure that nqubits > #classes and that 2^floor(log2(nqubits)) > #classes.\nThe number of qubits will be changed to a valid one, this change will affect the QuantumClassifier object.")
