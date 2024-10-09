@@ -18,13 +18,13 @@ class PreprocessingFactory:
 
     def GetPreprocessing(self, embedding, ansatz):
         if embedding == Embedding.AMP and ansatz == Ansatzs.TREE_TENSOR:
-            return PcaTreeAmp(self.nqubits)
+            return Pca(self.nqubits, 2**(2**(self.nqubits.bit_length()-1)))
         elif embedding == Embedding.AMP:
-            return PcaAmp(self.nqubits)
+            return Pca(self.nqubits, 2**self.nqubits)
         elif ansatz == Ansatzs.TREE_TENSOR:
-            return PcaTree(self.nqubits)
+            return Pca(self.nqubits, 2**(self.nqubits.bit_length()-1))
         else:
-            return Pca(self.nqubits)
+            return Pca(self.nqubits, self.nqubits)
        
         """
         Deprecated
