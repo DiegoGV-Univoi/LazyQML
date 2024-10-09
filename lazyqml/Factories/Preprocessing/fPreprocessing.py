@@ -17,11 +17,11 @@ class PreprocessingFactory:
         return Sanitizer(imputerCat, imputerNum)
 
     def GetPreprocessing(self, embedding, ansatz):
-        if embedding == Embedding.AMP and ansatz == Ansatz.TREE_TENSOR:
+        if embedding == Embedding.AMP and ansatz == Ansatzs.TREE_TENSOR:
             return PcaTreeAmp(self.nqubits)
         elif embedding == Embedding.AMP:
             return PcaAmp(self.nqubits)
-        elif ansatz == Ansatz.TREE_TENSOR:
+        elif ansatz == Ansatzs.TREE_TENSOR:
             return PcaTree(self.nqubits)
         else:
             return Pca(self.nqubits)

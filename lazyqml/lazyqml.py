@@ -138,7 +138,7 @@ def custom_invalid_metric(a, b):
     return [1, 0, 1, 0]  # Invalid return type
 
 
-classifier = QuantumClassifier(nqubits=4,classifiers=[Model.QNN_BAG],embeddings=[Embedding.ALL],ansatzs=[Ansatzs.ALL],epochs=10)
+classifier = QuantumClassifier(nqubits=8,classifiers=[Model.QNN],embeddings=[Embedding.ALL],ansatzs=[Ansatzs.ALL],epochs=10)
 print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
