@@ -84,7 +84,8 @@ class Dispatcher:
 
         for combination in combinations:
             name, embedding, ansatz, feature = combination
-            model = ModelFactory().getModel(Nqubits=nqubits, model=name, Embedding=embedding,Ansatz=ansatz, N_class=numClasses,backend=backend,Shots=shots,seed=randomstate,Layers=numLayers,Max_samples=maxSamples,Max_features=feature,LearningRate=learningRate,BatchSize=batch,Epoch=epochs,numPredictors=numPredictors)
+            print(f"Model: {name} Embedding: {embedding} Ansatz:{ansatz}")
+            model = ModelFactory().getModel(Nqubits=adjustedQubits, model=name, Embedding=embedding,Ansatz=ansatz, N_class=numClasses,backend=backend,Shots=shots,seed=randomstate,Layers=numLayers,Max_samples=maxSamples,Max_features=feature,LearningRate=learningRate,BatchSize=batch,Epoch=epochs,numPredictors=numPredictors)
             preprocessing = prepFactory.GetPreprocessing(ansatz=ansatz,embedding=embedding)
             X_train=preprocessing.fit_transform(X_train,y=y_train)
             X_test=preprocessing.transform(X_test)

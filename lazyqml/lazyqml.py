@@ -4,7 +4,7 @@ import pandas as pd
 from tabulate import tabulate
 from pydantic import BaseModel, Field, model_validator, field_validator, ValidationError
 from pydantic.config import ConfigDict
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Set
 from typing_extensions import Annotated
 from Factories.Preprocessing.fPreprocessing import PreprocessingFactory
 from Global.globalEnums import *
@@ -85,11 +85,11 @@ class QuantumClassifier(BaseModel):
     sequential: bool = True
     numPredictors: Annotated[int, Field(gt=0)] = 10
     numLayers: Annotated[int, Field(gt=0)] = 5
-    classifiers: Annotated[List[Model], Field(min_items=1)] = [Model.ALL]
-    ansatzs: Annotated[List[Ansatzs], Field(min_items=1)] = [Ansatzs.ALL]
-    embeddings: Annotated[List[Embedding], Field(min_items=1)] = [Embedding.ALL]
+    classifiers: Annotated[Set[Model], Field(min_items=1)] = {Model.ALL}
+    ansatzs: Annotated[Set[Ansatzs], Field(min_items=1)] = {Ansatzs.ALL}
+    embeddings: Annotated[Set[Embedding], Field(min_items=1)] = {Embedding.ALL}
     backend: Backend = Backend.lightningQubit
-    features: Annotated[List[float], Field(min_items=1)] = [0.3, 0.5, 0.8]
+    features: Annotated[Set[float], Field(min_items=1)] = {0.3, 0.5, 0.8}
     learningRate: Annotated[float, Field(gt=0)] = 0.01
     epochs: Annotated[int, Field(gt=0)] = 100
     shots: Annotated[int, Field(gt=0)] = 1
@@ -138,7 +138,7 @@ def custom_invalid_metric(a, b):
     return [1, 0, 1, 0]  # Invalid return type
 
 
-classifier = QuantumClassifier(nqubits=8,classifiers=[Model.QNN],embeddings=[Embedding.ALL],ansatzs=[Ansatzs.ALL],epochs=10)
+classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN,Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},epochs=1)
 print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
