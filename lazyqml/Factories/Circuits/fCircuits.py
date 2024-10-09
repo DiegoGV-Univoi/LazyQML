@@ -20,9 +20,9 @@ class CircuitFactory:
 
     def GetAnsatzCircuit(self,ansatz):
         if ansatz == Ansatzs.HARDWARE_EFFICIENT:
-            return HardwareEfficient(self.nqubits)
+            return HardwareEfficient(self.nqubits,self.nlayers)
         elif ansatz == Ansatzs.HCZRX:
-            return HCzRx(self.nqubits)
+            return HCzRx(self.nqubits,self.nlayers)
         elif ansatz == Ansatzs.TREE_TENSOR:
             return TreeTensor(self.nqubits, nlayers=self.nlayers)
         elif ansatz == Ansatzs.TWO_LOCAL:

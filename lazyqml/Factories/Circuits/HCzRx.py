@@ -2,11 +2,12 @@ from Interfaces.iAnsatz import Ansatz
 import pennylane as qml
 
 class HCzRx(Ansatz):
-    def __init__(self, nqubits):
+    def __init__(self, nqubits, nlayers):
         self.nqubits = nqubits
+        self.nlayers = nlayers
 
     def getCircuit(self):
-        def HCzRx(theta, wires, nlayers):
+        def HCzRx(theta, wires):
             """Implements an ansatz circuit composed of Hadamard, CZ, and RX gates.
 
             Args:
@@ -20,7 +21,7 @@ class HCzRx(Ansatz):
 
             param_count = 0
             
-            for nl in range(int(nlayers)):
+            for nl in range(int(self.nlayers)):
                 for i in range(N):
                     qml.Hadamard(wires = wires[i])
                 
