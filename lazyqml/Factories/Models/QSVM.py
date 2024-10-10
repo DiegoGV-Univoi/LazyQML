@@ -7,6 +7,7 @@ from sklearn.metrics import accuracy_score, balanced_accuracy_score
 import pennylane as qml
 from time import time
 from Factories.Circuits.fCircuits import CircuitFactory
+from Utils.Utils import printer
 
 class QSVM(Model):
     def __init__(self, nqubits, embedding, backend, shots, seed=1234):
@@ -19,7 +20,7 @@ class QSVM(Model):
         self.kernel_circ = self._build_kernel()
         self.qkernel = None
         self.X_train = None
-
+        
     def _build_kernel(self):
         """Build the quantum kernel using a given embedding and ansatz."""
         # Get the embedding circuit from the circuit factory
@@ -52,18 +53,18 @@ class QSVM(Model):
         self.X_train = X
         self.qkernel = self._quantum_kernel(X,X)
         # Train the classical SVM with the quantum kernel
-        print("Training the SVM...")
+        printer.print("Training the SVM...")
         self.svm = SVC(kernel="precomputed")
         self.svm.fit(self.qkernel, y)
-        print("SVM training complete.")
+        printer.print("SVM training complete.")
 
     def predict(self, X):
         try:
             if self.X_train is None:
                 raise ValueError("Model has not been fitted. Call fit() before predict().")
             
-            print(f"Test data shape: {X.shape}")
-            print(f"Computing kernel between test and training data...")
+            printer.print(f"Test data shape: {X.shape}")
+            printer.print(f"Computing kernel between test and training data...")
             
             # Compute kernel between test data and training data
             kernel_test = self._quantum_kernel(X, self.X_train)
@@ -73,12 +74,7 @@ class QSVM(Model):
             
             return self.svm.predict(kernel_test)
         except Exception as e:
-            print(f"Error during prediction: {str(e)}")
+            self.printer.print(f"Error during prediction: {str(e)}")
             raise
     def getTrainableParameters(self):
         return "~"
-
-    # def predict(self, X):
-    #     kernel_test = self._quantum_kernel(X, self.svm.support_vectors_)
-    #     y_pred = self.svm.predict(kernel_test)
-    #     return y_pred

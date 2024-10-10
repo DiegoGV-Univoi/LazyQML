@@ -7,6 +7,7 @@ from Interfaces.iAnsatz import Ansatz
 from Interfaces.iCircuit import Circuit
 from Factories.Circuits.fCircuits import *
 from Global.globalEnums import Backend
+from Utils.Utils import printer
 
 class QNNBag(Model):
 
@@ -112,9 +113,9 @@ class QNNBag(Model):
                     self.opt.step()
                     epoch_loss += loss.item()
 
-                print(f"Epoch {epoch + 1}/{self.epochs}, Loss: {epoch_loss / len(data_loader):.4f}")
+                printer.print(f"Epoch {epoch + 1}/{self.epochs}, Loss: {epoch_loss / len(data_loader):.4f}")
 
-            print(f"Training completed in {time() - start_time:.2f} seconds")
+            printer.print(f"Training completed in {time() - start_time:.2f} seconds")
 
     def predict(self, X):
         X_test = torch.tensor(X, dtype=torch.float32).to(self.device)

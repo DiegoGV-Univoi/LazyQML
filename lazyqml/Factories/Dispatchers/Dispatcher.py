@@ -11,14 +11,13 @@ class Dispatcher:
     def __init__(self, sequential = False, threshold=27):
         self.sequential = sequential,
         self.threshold = threshold
-        pass
 
     def executeModel(self, model,X_train,y_train,X_test,y_test,predictions,runs,customMetric):
         preds = []
         accuracyR, b_accuracyR, f1R, customR = 0, 0, 0, 0
         custom = None
         for j in range(runs):
-            print(f"Executing {j+1} run of {runs}")
+            printer.print(f"Executing {j+1} run of {runs}")
             start = time.time()
             model.fit(X=X_train,y=y_train)
             exeT = time.time() - start
@@ -61,16 +60,16 @@ class Dispatcher:
         TIME = []
         CUSTOM = []
         #PARAMETERS = []
-
+        
 
         numClasses = len(np.unique(y_train))
 
         combinations = create_combinations(classifiers=classifiers,embeddings=embeddings,features=features,ansatzs=ansatzs)
         
         if (numClasses > 2**math.floor(math.log2(nqubits))):
-            print("The number of qubits must exceed the number of classes and be a power of 2 to execute all circuits successfully. \nEnsure that nqubits > #classes and that 2^floor(log2(nqubits)) > #classes.\nThe number of qubits will be changed to a valid one, this change will affect the QuantumClassifier object.")
+            printer.print("The number of qubits must exceed the number of classes and be a power of 2 to execute all circuits successfully. \nEnsure that nqubits > #classes and that 2^floor(log2(nqubits)) > #classes.\nThe number of qubits will be changed to a valid one, this change will affect the QuantumClassifier object.")
             adjustedQubits = adjustQubits(nqubits=nqubits,numClasses=numClasses)
-            print(f"New number of qubits:\t{adjustedQubits}")
+            printer.print(f"New number of qubits:\t{adjustedQubits}")
         else:
             adjustedQubits = nqubits
     
@@ -91,7 +90,7 @@ class Dispatcher:
         print(combinations)
         for combination in combinations:
             name, embedding, ansatz, feature = combination
-            print(f"Model: {name} Embedding: {embedding} Ansatz:{ansatz}")
+            printer.print(f"Model: {name} Embedding: {embedding} Ansatz:{ansatz}")
             model = ModelFactory().getModel(Nqubits=adjustedQubits, model=name, Embedding=embedding,Ansatz=ansatz, N_class=numClasses,backend=backend,Shots=shots,seed=randomstate,Layers=numLayers,Max_samples=maxSamples,Max_features=feature,LearningRate=learningRate,BatchSize=batch,Epoch=epochs,numPredictors=numPredictors)
             preprocessing = prepFactory.GetPreprocessing(ansatz=ansatz,embedding=embedding)
             X_train=preprocessing.fit_transform(X_train,y=y_train)

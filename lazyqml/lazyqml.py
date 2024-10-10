@@ -183,8 +183,10 @@ class QuantumClassifier(BaseModel):
 
         return preprocessor
 
-    def fit(self, X_train, y_train, X_test, y_test,showTable=True):
-
+    def fit(self, X_train, y_train, X_test, y_test,showTable=True,verbose=False):
+        
+        
+        printer.set_verbose(False)
         # Validation model to ensure input parameters are DataFrames and sizes match
         FitParamsValidator(
             train_x=X_train,
@@ -192,12 +194,13 @@ class QuantumClassifier(BaseModel):
             test_x=X_test,
             test_y=y_test
         )
-        print("Validation successful, fitting the model...")
+        printer.print("Validation successful, fitting the model...")
         
         # Fix seed
         fixSeed(self.randomstate)
         d = Dispatcher(sequential=self.sequential,threshold=self.threshold)
         d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,sequential=self.sequential,threshold=self.threshold,batch=self.batchSize)
+
     def repeated_cross_validation(self, X, y, n_splits=5, n_repeats=10, showTable=True):
         pass
 
@@ -205,7 +208,7 @@ class QuantumClassifier(BaseModel):
         pass
 
 classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN_BAG},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},features={1},epochs=1,customImputerCat=SimpleImputer(strategy="most_frequent"),customImputerNum=SimpleImputer(strategy="most_frequent"))
-print("QuantumClassifier successfully validated!!")
+# print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
 # Load data

@@ -7,7 +7,7 @@ from Interfaces.iAnsatz import Ansatz
 from Interfaces.iCircuit import Circuit
 from Factories.Circuits.fCircuits import *
 from Global.globalEnums import Backend
-
+from Utils.Utils import printer
 
 class QNNTorch(Model):
     def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, shots, lr, batch_size, seed=1234) -> None:
@@ -75,7 +75,7 @@ class QNNTorch(Model):
     def fit(self, X, y):
         # Move the model to the appropriate device (GPU or CPU)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() and self.backend == Backend.lightningGPU else "cpu")
-        print(f"Training on: {self.device}")
+        printer.print(f"Training on: {self.device}")
 
         # Convert training data to torch tensors and transfer to device
         X_train = torch.tensor(X, dtype=torch.float32).to(self.device)
@@ -87,7 +87,7 @@ class QNNTorch(Model):
 
         # Initialize parameters as torch tensors
         num_params = int(self.layers * self.params_per_layer)
-        print(f"Initializing {num_params} parameters")
+        printer.print(f"Initializing {num_params} parameters")
         self.params = torch.randn((num_params,), device=self.device, requires_grad=True)  # Ensure params are on the same device
 
         # Define optimizer
@@ -117,13 +117,11 @@ class QNNTorch(Model):
                 epoch_loss += loss.item()
 
             # Print the average loss for the epoch
-            print(f"Epoch {epoch+1}/{self.epochs}, Loss: {epoch_loss/len(data_loader):.4f}")
+            printer.print(f"Epoch {epoch+1}/{self.epochs}, Loss: {epoch_loss/len(data_loader):.4f}")
 
-        print(f"Training completed in {time() - start_time:.2f} seconds")
+        printer.print(f"Training completed in {time() - start_time:.2f} seconds")
         self.params = self.params.detach().cpu()  # Save trained parameters to CPU
 
-
-  
     def predict(self, X):
         
         # Convert test data to torch tensors

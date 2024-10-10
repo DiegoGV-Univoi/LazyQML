@@ -3,6 +3,35 @@ from itertools import product
 import numpy as np
 import torch
 
+class VerbosePrinter:
+    _instance = None
+    _initialized = False
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(VerbosePrinter, cls).__new__(cls)
+        return cls._instance
+    
+    def __init__(self):
+        if not VerbosePrinter._initialized:
+            self.verbose = False
+            VerbosePrinter._initialized = True
+    
+    def set_verbose(self, verbose: bool):
+        self.verbose = verbose
+    
+    def print(self, message: str):
+        if self.verbose:
+            print(f"[VERBOSE] {message}")
+        else:
+            pass
+    
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = VerbosePrinter()
+        return cls._instance
+
 def adjustQubits(nqubits, numClasses):
     # Find the next power of 2 greater than numClasses
     power = np.ceil(np.log2(numClasses))
@@ -55,3 +84,5 @@ def create_combinations(classifiers, embeddings, ansatzs, features):
 def fixSeed(seed):
     np.random.seed(seed=seed)
     torch.manual_seed(seed)
+
+printer = VerbosePrinter()
