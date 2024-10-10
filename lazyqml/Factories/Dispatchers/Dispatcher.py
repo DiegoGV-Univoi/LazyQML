@@ -87,7 +87,9 @@ class Dispatcher:
         for combination in combinations:
             name, embedding, ansatz, feature = combination
             printer.print("="*100)
+            feature = feature if feature is not None else "~"
             printer.print(f"Model: {name} Embedding: {embedding} Ansatz:{ansatz} Features: {feature}")
+            
             model = ModelFactory().getModel(Nqubits=adjustedQubits, model=name, Embedding=embedding,Ansatz=ansatz, N_class=numClasses,backend=backend,Shots=shots,seed=randomstate,Layers=numLayers,Max_samples=maxSamples,Max_features=feature,LearningRate=learningRate,BatchSize=batch,Epoch=epochs,numPredictors=numPredictors)
             preprocessing = prepFactory.GetPreprocessing(ansatz=ansatz,embedding=embedding)
             X_train=preprocessing.fit_transform(X_train,y=y_train)

@@ -207,7 +207,7 @@ class QuantumClassifier(BaseModel):
     def leave_one_out(self, X, y, showTable=True):
         pass
 
-classifier = QuantumClassifier(nqubits=2,classifiers={Model.ALL},embeddings={Embedding.RX,Embedding.RY,Embedding.RZ},ansatzs={Ansatzs.HARDWARE_EFFICIENT},features={1},epochs=5,verbose=True)
+classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN},embeddings={Embedding.ALL},ansatzs={Ansatzs.ALL},features={1},epochs=5,verbose=True)
 # print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
