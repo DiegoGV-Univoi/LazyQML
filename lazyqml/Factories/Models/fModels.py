@@ -23,7 +23,7 @@ class ModelFactory:
             return QNNBag(nqubits=Nqubits, ansatz=Ansatz, embedding=Embedding, 
                       n_class=N_class, layers=Layers, epochs=Epoch, 
                       max_samples=Max_samples, max_features=Max_features,
-                      shots=Shots, lr=LearningRate, batch_size=BatchSize, seed=seed,backend=backend,n_estimators=numPredictors,n_features=Max_features,n_samples=Max_samples)
+                      shots=Shots, lr=LearningRate, batch_size=BatchSize, seed=seed,backend=backend,n_estimators=numPredictors,n_features=Max_features)
 
     """
     def GetQSVM(self):

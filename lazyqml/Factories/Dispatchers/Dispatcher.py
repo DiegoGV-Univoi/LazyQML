@@ -50,6 +50,7 @@ class Dispatcher:
         ANSATZ = []
         ACCURACY = []
         B_ACCURACY = []
+        FEATURES  = []
         #ROC_AUC = []
         F1 = []
         TIME = []
@@ -81,7 +82,7 @@ class Dispatcher:
         X_train = sanitizer.fit_transform(X_train)
         X_test = sanitizer.transform(X_test)
 
-
+        print(combinations)
         for combination in combinations:
             name, embedding, ansatz, feature = combination
             print(f"Model: {name} Embedding: {embedding} Ansatz:{ansatz}")
@@ -99,6 +100,8 @@ class Dispatcher:
             EMBEDDINGS.append(embedding)
             F1.append(f1)
             TIME.append(exeT)
+            FEATURES.append(feature)
+
             #PARAMETERS.append(trainable)
 
 
@@ -108,6 +111,7 @@ class Dispatcher:
                     "Model": NAMES,
                     "Embedding": EMBEDDINGS,
                     "Ansatz": ANSATZ,
+                    "Features": FEATURES,
                     "Accuracy": ACCURACY,
                     "Balanced Accuracy": B_ACCURACY,
                     #"ROC AUC": ROC_AUC,
@@ -122,6 +126,7 @@ class Dispatcher:
                     "Model": NAMES,
                     "Embedding": EMBEDDINGS,
                     "Ansatz": ANSATZ,
+                    "Features": FEATURES,
                     "Accuracy": ACCURACY,
                     "Balanced Accuracy": B_ACCURACY,
                     #"ROC AUC": ROC_AUC,

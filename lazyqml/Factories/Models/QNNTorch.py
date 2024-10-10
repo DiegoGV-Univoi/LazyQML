@@ -39,7 +39,7 @@ class QNNTorch(Model):
 
     def _build_circuit(self):
         # Get the ansatz and embedding circuits from the factory
-        ansatz: Ansatzs = self.circuit_factory.GetAnsatzCircuit(self.ansatz)
+        ansatz: Ansatz = self.circuit_factory.GetAnsatzCircuit(self.ansatz)
         embedding: Circuit = self.circuit_factory.GetEmbeddingCircuit(self.embedding)
 
         # Retrieve parameters per layer from the ansatz
@@ -49,6 +49,7 @@ class QNNTorch(Model):
         # Define the quantum circuit as a PennyLane qnode
         @qml.qnode(self.deviceQ, interface='torch', diff_method='adjoint')
         def circuit(x, theta):
+            
             embedding.getCircuit()(x, wires=range(self.nqubits))
             
             ansatz.getCircuit()(theta, wires=range(self.nqubits))
@@ -122,48 +123,7 @@ class QNNTorch(Model):
         self.params = self.params.detach().cpu()  # Save trained parameters to CPU
 
 
-    def _fit(self, X, y):
-        # Convert training data to torch tensors and transfer to device (CPU or GPU)
-        if self.backend == Backend.lightningGPU:
-            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        else:
-            device = torch.device("cpu")
-        print(f"Training on: {device}")
-
-        X_train = torch.tensor(X, dtype=torch.float32).to(device)
-        y_train = torch.tensor(y, dtype=torch.long).to(device)
-
-        # Initialize parameters as torch tensors
-        params = torch.randn(self.layers * self.params_per_layer, requires_grad=True, device=device)
-
-        # Define optimizer
-        self.opt = torch.optim.Adam([params], lr=self.lr)
-
-        # Create data loader for batching
-        data_loader = torch.utils.data.DataLoader(
-            list(zip(X_train, y_train)), batch_size=self.batch_size, shuffle=True, drop_last=True
-        )
-        start_time = time()
-
-        for epoch in range(self.epochs):
-            epoch_loss = 0.0
-            for batch_X, batch_y in data_loader:
-                self.opt.zero_grad()
-                # Forward pass
-                predictions = torch.stack([self.forward(x, params) for x in batch_X])
-                # Compute loss
-                loss = self.criterion(predictions, batch_y)
-                # Backward pass and optimization step
-                loss.backward()
-                self.opt.step()
-                epoch_loss += loss.item()
-
-            # Print the average loss for the epoch
-            print(f"Epoch {epoch+1}/{self.epochs}, Loss: {epoch_loss/len(data_loader):.4f}")
-
-        print(f"Training completed in {time() - start_time:.2f} seconds")
-        self.params = params.detach().cpu()  # Save trained parameters
-
+  
     def predict(self, X):
         
         # Convert test data to torch tensors
