@@ -8,6 +8,7 @@ from Interfaces.iCircuit import Circuit
 from Factories.Circuits.fCircuits import *
 from Global.globalEnums import Backend
 from Utils.Utils import printer
+import warnings
 
 class QNNBag(Model):
 
@@ -33,7 +34,7 @@ class QNNBag(Model):
         self.qnn = None
         self.params = None
         self._build_circuit()
-
+        warnings.filterwarnings("ignore")
         # Initialize loss function based on the number of classes
         if self.n_class == 2:
             self.criterion = torch.nn.BCEWithLogitsLoss()
@@ -113,9 +114,9 @@ class QNNBag(Model):
                     self.opt.step()
                     epoch_loss += loss.item()
 
-                printer.print(f"Epoch {epoch + 1}/{self.epochs}, Loss: {epoch_loss / len(data_loader):.4f}")
+                printer.print(f"\t\tEpoch {epoch + 1}/{self.epochs}, Loss: {epoch_loss / len(data_loader):.4f}")
 
-            printer.print(f"Training completed in {time() - start_time:.2f} seconds")
+            printer.print(f"\t\tTraining completed in {time() - start_time:.2f} seconds")
 
     def predict(self, X):
         X_test = torch.tensor(X, dtype=torch.float32).to(self.device)

@@ -8,7 +8,7 @@ from Interfaces.iCircuit import Circuit
 from Factories.Circuits.fCircuits import *
 from Global.globalEnums import Backend
 from Utils.Utils import printer
-
+import warnings
 class QNNTorch(Model):
     def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, shots, lr, batch_size, seed=1234) -> None:
         super().__init__()
@@ -29,6 +29,10 @@ class QNNTorch(Model):
         self.qnn = None
         self.params = None
         self._build_circuit()
+
+
+        # Suppress all warnings
+        warnings.filterwarnings("ignore")
 
         # Initialize PyTorch optimizer and loss function
         self.opt = None  # Will initialize in fit method with model parameters
@@ -65,7 +69,7 @@ class QNNTorch(Model):
         qnn_output = self.qnn(x, theta)
         if self.n_class == 2:
             #return (qnn_output + 1) / 2
-            return qnn_output.reshape(-1)
+            return qnn_output.squeeze()
         else:
             # If qnn_output is a list, apply the transformation to each element
             #return torch.tensor([(output + 1) / 2 for output in qnn_output])
@@ -75,7 +79,7 @@ class QNNTorch(Model):
     def fit(self, X, y):
         # Move the model to the appropriate device (GPU or CPU)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() and self.backend == Backend.lightningGPU else "cpu")
-        printer.print(f"Training on: {self.device}")
+
 
         # Convert training data to torch tensors and transfer to device
         X_train = torch.tensor(X, dtype=torch.float32).to(self.device)
@@ -87,7 +91,7 @@ class QNNTorch(Model):
 
         # Initialize parameters as torch tensors
         num_params = int(self.layers * self.params_per_layer)
-        printer.print(f"Initializing {num_params} parameters")
+        printer.print(f"\t\tInitializing {num_params} parameters")
         self.params = torch.randn((num_params,), device=self.device, requires_grad=True)  # Ensure params are on the same device
 
         # Define optimizer
@@ -117,12 +121,29 @@ class QNNTorch(Model):
                 epoch_loss += loss.item()
 
             # Print the average loss for the epoch
-            printer.print(f"Epoch {epoch+1}/{self.epochs}, Loss: {epoch_loss/len(data_loader):.4f}")
+            printer.print(f"\t\tEpoch {epoch+1}/{self.epochs}, Loss: {epoch_loss/len(data_loader):.4f}")
 
-        printer.print(f"Training completed in {time() - start_time:.2f} seconds")
+        printer.print(f"\t\tTraining completed in {time() - start_time:.2f} seconds")
         self.params = self.params.detach().cpu()  # Save trained parameters to CPU
 
     def predict(self, X):
+        # Convert test data to torch tensors
+        X_test = torch.tensor(X, dtype=torch.float32).to(self.device)
+        
+        # Forward pass for prediction
+        y_pred = torch.stack([self.forward(x, self.params) for x in X_test])
+        
+        if self.n_class == 2:
+            # For binary classification, apply sigmoid to get probabilities
+            y_pred = torch.sigmoid(y_pred.view(-1))  # Ensure shape is [batch_size]
+            # Return class labels based on a 0.5 threshold
+            return (y_pred > 0.5).cpu().numpy()  # Returns 0 or 1
+        else:
+            # For multi-class classification, y_pred is logits of shape [batch_size, n_class]
+            # Return the class with the highest logit value
+            return torch.argmax(y_pred, dim=1).cpu().numpy()  # Returns class indices
+
+    def _predict(self, X):
         
         # Convert test data to torch tensors
         X_test = torch.tensor(X, dtype=torch.float32).to(self.device)

@@ -17,7 +17,7 @@ class Dispatcher:
         accuracyR, b_accuracyR, f1R, customR = 0, 0, 0, 0
         custom = None
         for j in range(runs):
-            printer.print(f"Executing {j+1} run of {runs}")
+            printer.print(f"\tExecuting {j+1} run of {runs}")
             start = time.time()
             model.fit(X=X_train,y=y_train)
             exeT = time.time() - start
@@ -28,10 +28,7 @@ class Dispatcher:
             f1R += f1_score(y_test, y_pred, average="weighted")
             if customMetric is not None:
                 customR += customMetric(y_test,y_pred)
-            # try:
-            #         roc_aucR += roc_auc_score(y_test, y_pred)
-            # except Exception as exception:
-            #         roc_aucR += ""
+
         if predictions:
             preds = y_pred
         accuracy = accuracyR/runs
@@ -39,7 +36,6 @@ class Dispatcher:
         f1 = f1R/runs
         if customMetric is not None:
             custom = customR/runs
-        # roc_auc = roc_aucR/runs
 
         return exeT, accuracy, b_accuracy, f1, custom, preds
 
@@ -67,7 +63,7 @@ class Dispatcher:
         combinations = create_combinations(classifiers=classifiers,embeddings=embeddings,features=features,ansatzs=ansatzs)
         
         if (numClasses > 2**math.floor(math.log2(nqubits))):
-            printer.print("The number of qubits must exceed the number of classes and be a power of 2 to execute all circuits successfully. \nEnsure that nqubits > #classes and that 2^floor(log2(nqubits)) > #classes.\nThe number of qubits will be changed to a valid one, this change will affect the QuantumClassifier object.")
+            printer.print("The number of qubits must exceed the number of classes and be a power of 2 to execute all circuits successfully. \n\t\tEnsure that nqubits > #classes and that 2^floor(log2(nqubits)) > #classes.\n\t\tThe number of qubits will be changed to a valid one, this change will affect the QuantumClassifier object.")
             adjustedQubits = adjustQubits(nqubits=nqubits,numClasses=numClasses)
             printer.print(f"New number of qubits:\t{adjustedQubits}")
         else:
@@ -87,10 +83,11 @@ class Dispatcher:
         X_train = sanitizer.fit_transform(X_train)
         X_test = sanitizer.transform(X_test)
 
-        print(combinations)
+        
         for combination in combinations:
             name, embedding, ansatz, feature = combination
-            printer.print(f"Model: {name} Embedding: {embedding} Ansatz:{ansatz}")
+            printer.print("="*100)
+            printer.print(f"Model: {name} Embedding: {embedding} Ansatz:{ansatz} Features: {feature}")
             model = ModelFactory().getModel(Nqubits=adjustedQubits, model=name, Embedding=embedding,Ansatz=ansatz, N_class=numClasses,backend=backend,Shots=shots,seed=randomstate,Layers=numLayers,Max_samples=maxSamples,Max_features=feature,LearningRate=learningRate,BatchSize=batch,Epoch=epochs,numPredictors=numPredictors)
             preprocessing = prepFactory.GetPreprocessing(ansatz=ansatz,embedding=embedding)
             X_train=preprocessing.fit_transform(X_train,y=y_train)

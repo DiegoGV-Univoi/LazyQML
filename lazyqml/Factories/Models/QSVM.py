@@ -53,18 +53,18 @@ class QSVM(Model):
         self.X_train = X
         self.qkernel = self._quantum_kernel(X,X)
         # Train the classical SVM with the quantum kernel
-        printer.print("Training the SVM...")
+        printer.print("\t\tTraining the SVM...")
         self.svm = SVC(kernel="precomputed")
         self.svm.fit(self.qkernel, y)
-        printer.print("SVM training complete.")
+        printer.print("\t\tSVM training complete.")
 
     def predict(self, X):
         try:
             if self.X_train is None:
                 raise ValueError("Model has not been fitted. Call fit() before predict().")
             
-            printer.print(f"Test data shape: {X.shape}")
-            printer.print(f"Computing kernel between test and training data...")
+        
+            printer.print(f"\t\t\tComputing kernel between test and training data...")
             
             # Compute kernel between test data and training data
             kernel_test = self._quantum_kernel(X, self.X_train)

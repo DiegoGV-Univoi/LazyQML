@@ -183,10 +183,10 @@ class QuantumClassifier(BaseModel):
 
         return preprocessor
 
-    def fit(self, X_train, y_train, X_test, y_test,showTable=True,verbose=False):
+    def fit(self, X_train, y_train, X_test, y_test,showTable=True):
         
         
-        printer.set_verbose(False)
+        printer.set_verbose(verbose=self.verbose)
         # Validation model to ensure input parameters are DataFrames and sizes match
         FitParamsValidator(
             train_x=X_train,
@@ -207,7 +207,7 @@ class QuantumClassifier(BaseModel):
     def leave_one_out(self, X, y, showTable=True):
         pass
 
-classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN_BAG},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},features={1},epochs=1,customImputerCat=SimpleImputer(strategy="most_frequent"),customImputerNum=SimpleImputer(strategy="most_frequent"))
+classifier = QuantumClassifier(nqubits=2,classifiers={Model.ALL},embeddings={Embedding.RX,Embedding.RY,Embedding.RZ},ansatzs={Ansatzs.HARDWARE_EFFICIENT},features={1},epochs=5,verbose=True)
 # print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
