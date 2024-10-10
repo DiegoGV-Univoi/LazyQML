@@ -6,8 +6,9 @@ class TreeTensor(Ansatz):
     def __init__(self, nqubits, nlayers):
         self.nqubits = nqubits
         self.nlayers = nlayers
+        
     def getCircuit(self):
-        def tree_tensor_ansatz(theta , wires):
+        def tree_tensor_ansatz(theta, wires):
             """Implements a tree tensor network ansatz circuit.
 
             Args:
@@ -37,4 +38,4 @@ class TreeTensor(Ansatz):
         return tree_tensor_ansatz
 
     def getParameters(self):
-        return (2 ** (self.nqubits - 1) - 1) 
+        return (2 ** (int(np.log2(self.nqubits)) + 1) - 1) 
