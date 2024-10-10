@@ -32,19 +32,6 @@ class Model(BaseEnum):
     QNN = 2
     QNN_BAG = 3
     QSVM = 4
-    
-
-"""
-Deprecated
-
-# # Enum for selecting the Preprocessings
-# class Preprocessing(Enum):
-#     PCA = 1
-#     PCA_AMP = 2
-#     PCA_TREE = 3
-#     PCA_TREE_AMP = 4
-#     TYPES = 5
-"""
 
 class Backend(Enum):
     defaultQubit = "default.qubit"

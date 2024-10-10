@@ -13,9 +13,9 @@ class Dispatcher:
         self.threshold = threshold
         pass
 
-    def executeModel(self, model,X_train,y_train,X_test,y_test,predictions,runs):
+    def executeModel(self, model,X_train,y_train,X_test,y_test,predictions,runs,customMetric):
         preds = []
-        accuracyR, b_accuracyR, f1R = 0, 0, 0
+        accuracyR, b_accuracyR, f1R, customR = 0, 0, 0, 0
         for j in range(runs):
             print(f"Executing {j+1} run of {runs}")
             start = time.time()
@@ -26,6 +26,7 @@ class Dispatcher:
             accuracyR += accuracy_score(y_test, y_pred, normalize=True)
             b_accuracyR += balanced_accuracy_score(y_test, y_pred)
             f1R += f1_score(y_test, y_pred, average="weighted")
+            customR += customMetric(y_test,y_pred)
             # try:
             #         roc_aucR += roc_auc_score(y_test, y_pred)
             # except Exception as exception:
@@ -35,9 +36,10 @@ class Dispatcher:
         accuracy = accuracyR/runs
         b_accuracy = b_accuracyR/runs
         f1 = f1R/runs
+        custom = customR/runs
         # roc_auc = roc_aucR/runs
 
-        return exeT, accuracy, b_accuracy, f1, preds
+        return exeT, accuracy, b_accuracy, f1, custom, preds
 
 
     def dispatch(self, nqubits, randomstate, predictions,  shots, #ignoreWarnings,
@@ -54,6 +56,7 @@ class Dispatcher:
         #ROC_AUC = []
         F1 = []
         TIME = []
+        CUSTOM = []
         #PARAMETERS = []
 
 
@@ -90,7 +93,7 @@ class Dispatcher:
             preprocessing = prepFactory.GetPreprocessing(ansatz=ansatz,embedding=embedding)
             X_train=preprocessing.fit_transform(X_train,y=y_train)
             X_test=preprocessing.transform(X_test)
-            exeT, accuracy, b_accuracy, f1, preds = self.executeModel(model, X_train, y_train, X_test, y_test,predictions,runs=runs)
+            exeT, accuracy, b_accuracy, f1, custom, preds = self.executeModel(model, X_train, y_train, X_test, y_test,predictions,runs=runs,customMetric=customMetric)
             
             NAMES.append(name)
             ANSATZ.append(ansatz)
@@ -101,7 +104,7 @@ class Dispatcher:
             F1.append(f1)
             TIME.append(exeT)
             FEATURES.append(feature)
-
+            CUSTOM.append(custom)
             #PARAMETERS.append(trainable)
 
 
@@ -131,7 +134,7 @@ class Dispatcher:
                     "Balanced Accuracy": B_ACCURACY,
                     #"ROC AUC": ROC_AUC,
                     "F1 Score": F1,
-                    self.customMetric.__name__: customMetric,
+                    customMetric.__name__: CUSTOM,
                     #"Trainable Parameters": PARAMETERS,
                     "Time taken": TIME,
                 }

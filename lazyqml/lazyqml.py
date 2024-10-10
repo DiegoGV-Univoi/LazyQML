@@ -11,7 +11,7 @@ from Global.globalEnums import *
 from Utils.Utils import *
 from Utils.Validator import *
 from Factories.Dispatchers.Dispatcher import *
-
+from sklearn.impute import SimpleImputer
 
 class QuantumClassifier(BaseModel):
     """
@@ -98,15 +98,90 @@ class QuantumClassifier(BaseModel):
     threshold: Annotated[int, Field(gt=0)] = 26
     maxSamples: Annotated[float, Field(gt=0, le=1)] = 1.0
     verbose: bool = False
-    customMetric: Optional[MetricValidator] = None
-    customImputerNum: Optional[PreprocessorValidator] = None
-    customImputerCat: Optional[PreprocessorValidator] = None
+    customMetric: Optional[Callable] = None
+    customImputerNum: Optional[Any] = None
+    customImputerCat: Optional[Any] = None
 
     @field_validator('features')
     def validate_features(cls, v):
         if not all(0 < x <= 1 for x in v):
             raise ValueError("All features must be greater than 0 and less than or equal to 1")
         return v
+    
+    @field_validator('customMetric')
+    def validate_custom_metric_field(cls, metric):
+        if metric is None:
+            return None  # Allow None as a valid value
+
+        # Check the function signature
+        sig = inspect.signature(metric)
+        params = list(sig.parameters.values())
+        
+        if len(params) < 2 or params[0].name != 'y_true' or params[1].name != 'y_pred':
+            raise ValueError(
+                f"Function {metric.__name__} does not have the required signature. "
+                f"Expected first two arguments to be 'y_true' and 'y_pred'."
+            )
+
+        # Test the function by passing dummy arguments
+        y_true = np.array([0, 1, 1, 0])  # Example ground truth labels
+        y_pred = np.array([0, 1, 0, 0])  # Example predicted labels
+        
+        try:
+            result = metric(y_true, y_pred)
+        except Exception as e:
+            raise ValueError(f"Function {metric.__name__} raised an error during execution: {e}")
+
+        # Ensure the result is a scalar (int or float)
+        if not isinstance(result, (int, float)):
+            raise ValueError(
+                f"Function {metric.__name__} returned {result}, which is not a scalar value."
+            )
+        
+        return metric
+    
+    @field_validator('customImputerCat', 'customImputerNum')
+    def check_preprocessor_methods(cls, preprocessor):
+        # Check if preprocessor is an instance of a class
+        if not isinstance(preprocessor, object):
+            raise ValueError(
+                f"Expected an instance of a class, but got {type(preprocessor).__name__}."
+            )
+
+        # Ensure the object has 'fit' and 'transform' methods
+        if not (hasattr(preprocessor, 'fit') and hasattr(preprocessor, 'transform')):
+            raise ValueError(
+                f"Object {preprocessor.__class__.__name__} does not have required methods 'fit' and 'transform'."
+            )
+
+        # Optionally check if the object has 'fit_transform' method
+        if not hasattr(preprocessor, 'fit_transform'):
+            raise ValueError(
+                f"Object {preprocessor.__class__.__name__} does not have 'fit_transform' method."
+            )
+
+        # Create dummy data for testing the preprocessor methods
+        X_dummy = np.array([[1, 2], [3, 4], [5, 6]])  # Example dummy data
+
+        try:
+            # Ensure the object can fit on data
+            preprocessor.fit(X_dummy)
+        except Exception as e:
+            raise ValueError(f"Object {preprocessor.__class__.__name__} failed to fit: {e}")
+
+        try:
+            # Ensure the object can transform data
+            transformed = preprocessor.transform(X_dummy)
+        except Exception as e:
+            raise ValueError(f"Object {preprocessor.__class__.__name__} failed to transform: {e}")
+
+        # Check the type of the transformed result
+        if not isinstance(transformed, (np.ndarray, list)):
+            raise ValueError(
+                f"Object {preprocessor.__class__.__name__} returned {type(transformed)} from 'transform', expected np.ndarray or list."
+            )
+
+        return preprocessor
 
     def fit(self, X_train, y_train, X_test, y_test,showTable=True):
 
@@ -129,30 +204,16 @@ class QuantumClassifier(BaseModel):
     def leave_one_out(self, X, y, showTable=True):
         pass
 
-
-# Example instantiation with validators
-class CustomInvalidPreprocessor:
-    def apply(self, X):
-        return X
-def custom_invalid_metric(a, b):
-    return [1, 0, 1, 0]  # Invalid return type
-
-
-# classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN_BAG},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},features={1},epochs=1)
-# print("QuantumClassifier successfully validated!!")
+classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN_BAG},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},features={1},epochs=1,customImputerCat=SimpleImputer(strategy="most_frequent"),customImputerNum=SimpleImputer(strategy="most_frequent"))
+print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
 # Load data
-data = load_iris()
+data = load_breast_cancer()
 X = data.data
 y = data.target
 
 # Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.95,random_state =1234)  
 
-X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.9,random_state =1234)  
-
-# classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
-
-from Factories.Models.QNNPennylane import *
-
-QNNPennylane(nqubits=4, backend=Backend.lightningQubit, ansatz=Ansatzs.HARDWARE_EFFICIENT, embedding=Embedding.RX, n_class=3, layers=5, epochs=20, shots=0, lr=0.01, seed=1234).fit(X_train,y_train)
+classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
