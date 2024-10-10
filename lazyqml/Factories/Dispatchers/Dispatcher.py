@@ -16,6 +16,7 @@ class Dispatcher:
     def executeModel(self, model,X_train,y_train,X_test,y_test,predictions,runs,customMetric):
         preds = []
         accuracyR, b_accuracyR, f1R, customR = 0, 0, 0, 0
+        custom = None
         for j in range(runs):
             print(f"Executing {j+1} run of {runs}")
             start = time.time()
@@ -26,7 +27,8 @@ class Dispatcher:
             accuracyR += accuracy_score(y_test, y_pred, normalize=True)
             b_accuracyR += balanced_accuracy_score(y_test, y_pred)
             f1R += f1_score(y_test, y_pred, average="weighted")
-            customR += customMetric(y_test,y_pred)
+            if customMetric is not None:
+                customR += customMetric(y_test,y_pred)
             # try:
             #         roc_aucR += roc_auc_score(y_test, y_pred)
             # except Exception as exception:
@@ -36,7 +38,8 @@ class Dispatcher:
         accuracy = accuracyR/runs
         b_accuracy = b_accuracyR/runs
         f1 = f1R/runs
-        custom = customR/runs
+        if customMetric is not None:
+            custom = customR/runs
         # roc_auc = roc_aucR/runs
 
         return exeT, accuracy, b_accuracy, f1, custom, preds
