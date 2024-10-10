@@ -3,9 +3,9 @@ from Interfaces.iAnsatz import Ansatz
 from Interfaces.iCircuit import Circuit
 from Factories.Circuits.fCircuits import *
 
-from time import time
+import time
 import pennylane as qml
-
+import pennylane.numpy as np
 
 class QNNPennylane(Model):
     def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, shots, lr=0.01, seed=1234) -> None:
@@ -20,7 +20,7 @@ class QNNPennylane(Model):
         self.lr = lr
         self.device = qml.device(backend.value, wires=nqubits, seed=seed)
         self.params_per_layer = None
-        self.circuit_factory = CircuitFactory(nqubits)
+        self.circuit_factory = CircuitFactory(nqubits,nlayers=layers)
         self.qnn = None
         self.opt = qml.GradientDescentOptimizer(stepsize=self.lr)
         self.params = None
@@ -28,9 +28,21 @@ class QNNPennylane(Model):
         # Build the quantum neural network circuit
         self._build_circuit()
 
+
+    def cross_entropy_loss(self, y_true, y_pred):
+        y_true=y_true.reshape(-1,1)
+        y_pred=y_pred.reshape(-1,1)
+        return -np.mean(np.sum(np.log(y_pred) * y_true + (1-y_true)*np.log(1-y_pred), axis=1))
+
+    def calculate_ce_cost(self,X, y, theta):
+        yp = self.qnn(X, theta)
+        yp = np.exp(yp)/sum(np.exp(yp))
+        return self.cross_entropy_loss(y, yp)
+
+
     def _build_circuit(self):
         # Get the ansatz and embedding circuits from the factory
-        ansatz : Ansatz = self.circuit_factory.GetAnsatzCircuit(self.ansatz).getCircuit()
+        ansatz : Ansatz = self.circuit_factory.GetAnsatzCircuit(self.ansatz)
         embedding : Circuit = self.circuit_factory.GetEmbeddingCircuit(self.embedding)
 
         # Retrieve parameters per layer from the ansatz
@@ -40,7 +52,7 @@ class QNNPennylane(Model):
         def circuit(x, theta):
             embedding.getCircuit()(x, wires=range(self.nqubits))
             
-            ansatz(theta, wires=range(self.nqubits), nlayers = self.layers)
+            ansatz.getCircuit()(theta, wires=range(self.nqubits))
 
             if self.n_class==2:
                 observable = qml.expval(qml.PauliZ(0))
@@ -60,10 +72,10 @@ class QNNPennylane(Model):
 
         start = time.time()
 
-        for i in range(self.steps):
+        for i in range(self.epochs):
             self.params = self.opt.step(self.calculate_ce_cost, X_train_grad, y_train_grad, self.params)[2]
             if i % 10 == 0:  # Print every 10 steps
-                print(f"Step {i}/{self.steps}")
+                print(f"Step {i}/{self.epochs}")
         
         print(f"Training completed in {time.time() - start} seconds")
         return self  # Return the fitted model instance

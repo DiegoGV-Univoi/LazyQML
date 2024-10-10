@@ -4,10 +4,10 @@ import pandas as pd
 import math
 from Factories.Models.fModels import *
 from Factories.Preprocessing.fPreprocessing import *
-from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score, roc_auc_score
+from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
 import time
-class Dispatcher:
 
+class Dispatcher:
     def __init__(self, sequential = False, threshold=27):
         self.sequential = sequential,
         self.threshold = threshold

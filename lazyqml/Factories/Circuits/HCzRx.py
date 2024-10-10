@@ -20,8 +20,8 @@ class HCzRx(Ansatz):
             N = len(wires)
 
             param_count = 0
-            
-            for nl in range(int(self.nlayers)):
+
+            for _ in range(int(self.nlayers)):
                 for i in range(N):
                     qml.Hadamard(wires = wires[i])
                 

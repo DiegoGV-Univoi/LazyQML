@@ -39,32 +39,6 @@ class MetricValidator(BaseModel):
             )
         
         return metric
-    
-# # Example usage with a valid metric
-# try:
-#     valid_metric = MetricValidator(metric=accuracy_score)  # Pass a valid sklearn metric function
-#     print("Valid metric function!")
-# except ValidationError as e:
-#     print(f"Validation failed: {e}")
-
-# # Example with an invalid metric (incorrect signature)
-# def custom_invalid_metric(a, b):
-#     return [1, 0, 1, 0]  # Invalid return type
-
-# try:
-#     invalid_metric = MetricValidator(metric=custom_invalid_metric)
-# except ValidationError as e:
-#     print(f"Validation failed: {e}")
-
-# # Example with invalid return type
-# def invalid_return_metric(y_true, y_pred):
-#     return [0, 1]  # Returning a list instead of scalar
-
-# try:
-#     invalid_return = MetricValidator(metric=invalid_return_metric)
-# except ValidationError as e:
-#     print(f"Validation failed: {e}")
-
 
 class PreprocessorValidator(BaseModel):
     preprocessor: Any  # Accept any object
@@ -105,36 +79,6 @@ class PreprocessorValidator(BaseModel):
             )
         
         return preprocessor
-
-# # Example usage with a valid preprocessor (e.g., StandardScaler)
-# try:
-#     valid_preprocessor = PreprocessorValidator(preprocessor=StandardScaler())  # Pass a valid sklearn preprocessor
-#     print("Valid preprocessor!")
-# except ValidationError as e:
-#     print(f"Validation failed: {e}")
-
-# # Example with an invalid object (missing methods)
-# class CustomInvalidPreprocessor:
-#     def apply(self, X):
-#         return X
-
-# try:
-#     invalid_preprocessor = PreprocessorValidator(preprocessor=CustomInvalidPreprocessor())
-# except ValidationError as e:
-#     print(f"Validation failed: {e}")
-
-# # Example with invalid transform return type
-# class InvalidReturnPreprocessor:
-#     def fit(self, X):
-#         pass
-    
-#     def transform(self, X):
-#         return "invalid result"  # Should return an array-like, but this is invalid
-
-# try:
-#     invalid_return_preprocessor = PreprocessorValidator(preprocessor=InvalidReturnPreprocessor())
-# except ValidationError as e:
-#     print(f"Validation failed: {e}")
 
 class FitParamsValidator(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)  # Allow arbitrary types like DataFrame and ndarray

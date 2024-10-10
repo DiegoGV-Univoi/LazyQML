@@ -50,11 +50,6 @@ class QNNBag(Model):
         # Define the quantum circuit as a PennyLane qnode
         @qml.qnode(self.deviceQ, interface='torch', diff_method='adjoint')
         def circuit(x, theta):
-            # Check if input size matches the number of qubits
-            # print("")
-            # if len(x) != self.nqubits:
-            #     raise ValueError(f"Input features length ({len(x)}) does not match the number of qubits ({self.nqubits})")
-
             # Apply embedding and ansatz circuits
             embedding.getCircuit()(x, wires=range(self.nqubits))
             ansatz.getCircuit()(theta, wires=range(self.nqubits))
@@ -63,17 +58,14 @@ class QNNBag(Model):
                 return qml.expval(qml.PauliZ(0))
             else:
                 return [qml.expval(qml.PauliZ(wires=n)) for n in range(self.n_class)]
-
+            
         self.qnn = circuit
 
     def forward(self, x, theta):
         qnn_output = self.qnn(x, theta)
         if self.n_class == 2:
-            #return (qnn_output + 1) / 2
             return qnn_output.squeeze()
         else:
-            # If qnn_output is a list, apply the transformation to each element
-            #return torch.tensor([(output + 1) / 2 for output in qnn_output])
             return torch.stack([output for output in qnn_output]).T
 
     def fit(self, X, y):

@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from Interfaces.iCircuit import Circuit
 
 class Ansatz(Circuit):

@@ -32,5 +32,5 @@ class ZzEmbedding(Circuit):
                 qml.CZ(wires=[q0,q1])
                 qml.RZ(2.0*(np.pi-x[q0])*(np.pi-x[q1]),wires=q1)
                 qml.CZ(wires=[q0,q1])
-                
+
         return ZZ_embedding

@@ -39,6 +39,7 @@ class CircuitFactory:
             return ZzEmbedding()
         elif embedding == Embedding.AMP:
             return AmplitudeEmbedding()
+
     def GetKernelCircuit(self,embedding):
         pass
         

@@ -138,8 +138,8 @@ def custom_invalid_metric(a, b):
     return [1, 0, 1, 0]  # Invalid return type
 
 
-classifier = QuantumClassifier(nqubits=2,classifiers={Model.ALL},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},features={1},epochs=1)
-print("QuantumClassifier successfully validated!!")
+# classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN_BAG},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},features={1},epochs=1)
+# print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
 # Load data
@@ -151,4 +151,8 @@ y = data.target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.9,random_state =1234)  
 
-classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
+# classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
+
+from Factories.Models.QNNPennylane import *
+
+QNNPennylane(nqubits=4, backend=Backend.lightningQubit, ansatz=Ansatzs.HARDWARE_EFFICIENT, embedding=Embedding.RX, n_class=3, layers=5, epochs=20, shots=0, lr=0.01, seed=1234).fit(X_train,y_train)

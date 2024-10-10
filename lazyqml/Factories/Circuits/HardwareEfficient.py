@@ -20,7 +20,7 @@ class HardwareEfficient(Ansatz):
             """
             param_count = 0
             
-            for nl in range(self.nlayers):
+            for _ in range(self.nlayers):
 
                 N = len(wires)
                 assert len(theta) == 3 * N * self.nlayers
@@ -50,8 +50,6 @@ class HardwareEfficient(Ansatz):
                 qml.CNOT(wires=[wires[N-1],wires[0]])
 
         return hardware_efficient_ansatz
-
     
-
     def getParameters(self):
         return 3 * self.nqubits 

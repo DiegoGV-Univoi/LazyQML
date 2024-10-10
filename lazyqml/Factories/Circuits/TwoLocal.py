@@ -6,6 +6,7 @@ class TwoLocal(Ansatz):
     def __init__(self, nqubits, nlayers):
         self.nqubits = nqubits
         self.nlayers = nlayers
+
     def getCircuit(self):
         def TwoLocal(theta, wires):
             """Implements a two-local ansatz circuit.
@@ -21,7 +22,7 @@ class TwoLocal(Ansatz):
 
             param_count = 0
 
-            for nl in range(self.nlayers):
+            for _ in range(self.nlayers):
                 for i in range(N):
                     qml.RY(theta[param_count], wires = i)
                     param_count += 1

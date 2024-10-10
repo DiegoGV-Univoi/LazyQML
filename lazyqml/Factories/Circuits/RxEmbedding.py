@@ -4,7 +4,7 @@ import pennylane as qml
 class RxEmbedding(Circuit):
     def __init__(self) -> None:
         super().__init__()
-        
+
     def getCircuit(self):
         def rx_embedding(x, wires):
             """Embeds a quantum state into the quantum device using rotation around the X-axis.
