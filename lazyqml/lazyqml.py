@@ -207,7 +207,7 @@ class QuantumClassifier(BaseModel):
     def leave_one_out(self, X, y, showTable=True):
         pass
 
-classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN},embeddings={Embedding.ALL},ansatzs={Ansatzs.ALL},features={1},epochs=50,verbose=True,runs=5,sequential=False,threshold=27,backend=Backend.lightningQubit)
+classifier = QuantumClassifier(nqubits=8,classifiers={Model.QNN},embeddings={Embedding.ALL},ansatzs={Ansatzs.ALL},features={1},epochs=1,verbose=False,runs=5,sequential=False,threshold=27,backend=Backend.lightningQubit)
 # print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
@@ -220,4 +220,19 @@ y = data.target
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.9,random_state =1234)  
 start = time.time()
 classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
-print(f"TOTAL TIME: {time.time()-start}s")
+print(f"PARALLEL TOTAL TIME: {time.time()-start}s")
+
+classifier = QuantumClassifier(nqubits=8,classifiers={Model.QNN},embeddings={Embedding.ALL},ansatzs={Ansatzs.ALL},features={1},epochs=50,verbose=False,runs=5,sequential=True,threshold=27,backend=Backend.lightningQubit)
+# print("QuantumClassifier successfully validated!!")
+from sklearn.datasets import load_breast_cancer,load_iris
+from sklearn.model_selection import train_test_split
+# Load data
+data = load_iris()
+X = data.data
+y = data.target
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.9,random_state =1234)  
+start = time.time()
+classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
+print(f"SEQUENTIAL TOTAL TIME: {time.time()-start}s")
