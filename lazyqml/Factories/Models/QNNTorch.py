@@ -22,7 +22,7 @@ class QNNTorch(Model):
         self.lr = lr
         self.batch_size = batch_size
         self.backend = backend
-        self.deviceQ = qml.device(backend.value, wires=nqubits, seed=seed)
+        self.deviceQ = qml.device(backend.value, wires=nqubits, seed=seed) if backend != Backend.lightningGPU else qml.device(backend.value, wires=nqubits)
         self.device = None
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(nqubits,nlayers=layers)

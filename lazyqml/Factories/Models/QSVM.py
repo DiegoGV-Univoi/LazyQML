@@ -74,7 +74,7 @@ class QSVM(Model):
             
             return self.svm.predict(kernel_test)
         except Exception as e:
-            self.printer.print(f"Error during prediction: {str(e)}")
+            printer.print(f"Error during prediction: {str(e)}")
             raise
     def getTrainableParameters(self):
         return "~"

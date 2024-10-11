@@ -2,6 +2,7 @@ from Global.globalEnums import *
 from itertools import product
 import numpy as np
 import torch
+import psutil
 
 class VerbosePrinter:
     _instance = None
@@ -84,5 +85,26 @@ def create_combinations(classifiers, embeddings, ansatzs, features):
 def fixSeed(seed):
     np.random.seed(seed=seed)
     torch.manual_seed(seed)
+
+def calculate_quantum_memory(num_qubits, overhead=2):
+    # Each qubit state requires 2 complex numbers (amplitude and phase)
+    # Each complex number uses 2 double-precision floats (16 bytes)
+    bytes_per_qubit_state = 16
+    
+    # Number of possible states is 2^n, where n is the number of qubits
+    num_states = 2 ** num_qubits
+    
+    # Total memory in bytes
+    total_memory_bytes = num_states * bytes_per_qubit_state * overhead
+    
+    # Convert to more readable units
+
+    return total_memory_bytes / (1024**3)
+
+def calculate_free_memory():
+        # Use psutil to get available system memory (in GB)
+        mem = psutil.virtual_memory()
+        free_ram_gb = mem.available / (1024 ** 3)  # Convert bytes to GB
+        return free_ram_gb
 
 printer = VerbosePrinter()

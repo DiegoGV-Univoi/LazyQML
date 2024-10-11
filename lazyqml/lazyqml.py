@@ -82,7 +82,7 @@ class QuantumClassifier(BaseModel):
     randomstate: int = 1234
     predictions: bool = False
     ignoreWarnings: bool = True
-    sequential: bool = True
+    sequential: bool = False
     numPredictors: Annotated[int, Field(gt=0)] = 10
     numLayers: Annotated[int, Field(gt=0)] = 5
     classifiers: Annotated[Set[Model], Field(min_items=1)] = {Model.ALL}
@@ -199,7 +199,7 @@ class QuantumClassifier(BaseModel):
         # Fix seed
         fixSeed(self.randomstate)
         d = Dispatcher(sequential=self.sequential,threshold=self.threshold)
-        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,sequential=self.sequential,threshold=self.threshold,batch=self.batchSize)
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,batch=self.batchSize)
 
     def repeated_cross_validation(self, X, y, n_splits=5, n_repeats=10, showTable=True):
         pass
@@ -207,7 +207,7 @@ class QuantumClassifier(BaseModel):
     def leave_one_out(self, X, y, showTable=True):
         pass
 
-classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN},embeddings={Embedding.ALL},ansatzs={Ansatzs.ALL},features={1},epochs=5,verbose=True)
+classifier = QuantumClassifier(nqubits=2,classifiers={Model.QNN},embeddings={Embedding.ALL},ansatzs={Ansatzs.ALL},features={1},epochs=50,verbose=True,runs=5,sequential=False,threshold=27,backend=Backend.lightningQubit)
 # print("QuantumClassifier successfully validated!!")
 from sklearn.datasets import load_breast_cancer,load_iris
 from sklearn.model_selection import train_test_split
@@ -218,5 +218,6 @@ y = data.target
 
 # Split data
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.9,random_state =1234)  
-
+start = time.time()
 classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
+print(f"TOTAL TIME: {time.time()-start}s")

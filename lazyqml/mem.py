@@ -52,7 +52,7 @@ def check_and_run_circuit(circuit, num_qubits):
         return True
 
 
-def calculate_quantum_memory(num_qubits, overhead=4):
+def calculate_quantum_memory(num_qubits, overhead=2):
     # Each qubit state requires 2 complex numbers (amplitude and phase)
     # Each complex number uses 2 double-precision floats (16 bytes)
     bytes_per_qubit_state = 16
@@ -64,18 +64,11 @@ def calculate_quantum_memory(num_qubits, overhead=4):
     total_memory_bytes = num_states * bytes_per_qubit_state * overhead
     
     # Convert to more readable units
-    memory_kb = total_memory_bytes / 1024
-    memory_mb = memory_kb / 1024
-    memory_gb = memory_mb / 1024
-    memory_tb = memory_gb / 1024
+
+    return total_memory_bytes / (1024**3)
+
     
-    return {
-        'bytes': total_memory_bytes,
-        'kilobytes': memory_kb,
-        'megabytes': memory_mb,
-        'gigabytes': memory_gb,
-        'terabytes': memory_tb
-    }
+    
 
 def print_memory_requirements(num_qubits):
     memory = calculate_quantum_memory(num_qubits)

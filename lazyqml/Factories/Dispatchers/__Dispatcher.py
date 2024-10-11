@@ -1,11 +1,14 @@
-from concurrent.futures import ThreadPoolExecutor
-from Utils.Utils import * 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from queue import Queue, Empty
+from threading import Lock
+import psutil
 import numpy as np
 import pandas as pd
-import math
-from Factories.Models.fModels import *
-from Factories.Preprocessing.fPreprocessing import *
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
+from Utils.Utils import *
+from Factories.Preprocessing.fPreprocessing import *
+from Factories.Models.fModels import *
+import math
 import time
 
 class Dispatcher:
@@ -107,6 +110,7 @@ class Dispatcher:
             ))
         
         if self.sequential or backend == "Lightning.GPU" or nqubits >= self.threshold:
+            printer.print("SEQUENTIAL")
             # Sequential execution
             for model_args in models_to_run:
                 model, X_train_p, y_train, X_test_p, y_test, preds, runs, custom_metric, \
@@ -121,6 +125,7 @@ class Dispatcher:
                                     feature, accuracy, b_accuracy, f1, exeT, custom)
         else:
             # Parallel execution
+            printer.print("PARALLEL")
             with ThreadPoolExecutor(max_workers=min(len(models_to_run), psutil.cpu_count())) as executor:
                 futures = []
                 for model_args in models_to_run:
