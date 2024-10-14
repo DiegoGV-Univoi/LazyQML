@@ -1,5 +1,4 @@
-from multiprocessing import Pool
-from Utils.Utils import * 
+from Utils.Utils import *
 import numpy as np
 import pandas as pd
 import math
@@ -7,195 +6,120 @@ from Factories.Models.fModels import *
 from Factories.Preprocessing.fPreprocessing import *
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
 import time
-import psutil
+from joblib import Parallel, delayed
 
 class Dispatcher:
-    def __init__(self, sequential, threshold=27):
+    def __init__(self, sequential=False, threshold=27):
         self.sequential = sequential
         self.threshold = threshold
-        
-    def _executeModel(self, args):
-        model_params, X_train, y_train, X_test, y_test, predictions, runs, customMetric = args
-        
-        # Recreate the model in this process
-        model = ModelFactory().getModel(**model_params)
-        
+
+    def execute_model(self, model_factory_params, X_train, y_train, X_test, y_test, predictions, runs, customMetric):
+        model = ModelFactory().getModel(**model_factory_params)
         preds = []
         accuracyR, b_accuracyR, f1R, customR = 0, 0, 0, 0
         custom = None
-        exeT = 0
+    
         
-        for j in range(runs):
-            start = time.time()
+        start = time.time()
+        for _ in range(runs):
             model.fit(X=X_train, y=y_train)
-            exeT += time.time() - start
             y_pred = model.predict(X=X_test)
-            
+
             accuracyR += accuracy_score(y_test, y_pred, normalize=True)
             b_accuracyR += balanced_accuracy_score(y_test, y_pred)
             f1R += f1_score(y_test, y_pred, average="weighted")
             if customMetric is not None:
                 customR += customMetric(y_test, y_pred)
-        
+
+        exeT = time.time() - start
+
         if predictions:
             preds = y_pred
-        accuracy = accuracyR/runs
-        b_accuracy = b_accuracyR/runs
-        f1 = f1R/runs
+        accuracy = accuracyR / runs
+        b_accuracy = b_accuracyR / runs
+        f1 = f1R / runs
         if customMetric is not None:
-            custom = customR/runs
-        
-        exeT = exeT/runs
-        return exeT, accuracy, b_accuracy, f1, custom, preds
+            custom = customR / runs
 
-    def dispatch(self, nqubits, randomstate, predictions, shots,
-                numPredictors, numLayers, classifiers, ansatzs, backend,
-                embeddings, features, learningRate, epochs, runs, batch,
-                maxSamples, verbose, customMetric, customImputerNum, customImputerCat,
-                X_train, y_train, X_test, y_test, showTable=True):
+        return model_factory_params['model'], model_factory_params['Embedding'], model_factory_params['Ansatz'], model_factory_params['Max_features'], exeT, accuracy, b_accuracy, f1, custom, preds
+
+    def dispatch(self, nqubits, randomstate, predictions, shots, 
+                 numPredictors, numLayers, classifiers, ansatzs, backend, 
+                 embeddings, features, learningRate, epochs, runs, batch,
+                 maxSamples, verbose, customMetric, customImputerNum, 
+                 customImputerCat, X_train, y_train, X_test, y_test, 
+                 showTable=True):
         
-        NAMES, EMBEDDINGS, ANSATZ, ACCURACY = [], [], [], []
-        B_ACCURACY, FEATURES, F1, TIME, CUSTOM = [], [], [], [], []
+        combinations = create_combinations(classifiers=classifiers, 
+                                           embeddings=embeddings, 
+                                           features=features, 
+                                           ansatzs=ansatzs)
         
-        numClasses = len(np.unique(y_train))
         
-        # Adjust qubits if necessary
-        if (numClasses > 2**math.floor(math.log2(nqubits))):
-            printer.print("The number of qubits must exceed the number of classes and be a power of 2.")
-            adjustedQubits = adjustQubits(nqubits=nqubits, numClasses=numClasses)
-            printer.print(f"New number of qubits:\t{adjustedQubits}")
-        else:
-            adjustedQubits = nqubits
-        
-        # Convert input data to pandas DataFrames if needed
         if not isinstance(X_train, pd.DataFrame):
             X_train = pd.DataFrame(X_train)
         if not isinstance(X_test, pd.DataFrame):
-            X_test = pd.DataFrame(X_test)
-        
-        # Preprocessing
-        prepFactory = PreprocessingFactory(nqubits)
+                X_test = pd.DataFrame(X_test)
+
+        numClasses = len(np.unique(y_train))
+        adjustedQubits = adjustQubits(nqubits=nqubits, numClasses=numClasses)
+
+        prepFactory = PreprocessingFactory(adjustedQubits)
         sanitizer = prepFactory.GetSanitizer(customImputerCat, customImputerNum)
+
         X_train = sanitizer.fit_transform(X_train)
         X_test = sanitizer.transform(X_test)
+
+        # Calculate available memory and determine max parallel models
+        available_memory = calculate_free_memory()
+        quantum_memory = calculate_quantum_memory(num_qubits=adjustedQubits)
+        max_models_parallel = min(int(available_memory // quantum_memory) if quantum_memory > 0 else float('inf'), psutil.cpu_count(logical=False))
+
+        print(f"MAX MODELS: {max_models_parallel}")
+
         
-        combinations = create_combinations(classifiers=classifiers, embeddings=embeddings, 
-                                          features=features, ansatzs=ansatzs)
-        
-        execution_args = []
+        # Prepare all model executions
+        all_executions = []
         for combination in combinations:
             name, embedding, ansatz, feature = combination
-            printer.print("="*100)
             feature = feature if feature is not None else "~"
-            printer.print(f"Model: {name} Embedding: {embedding} Ansatz:{ansatz} Features: {feature}")
             
-            # Instead of creating the model, we'll just store its parameters
-            model_params = {
-                'Nqubits': adjustedQubits,
-                'model': name,
-                'Embedding': embedding,
-                'Ansatz': ansatz,
-                'N_class': numClasses,
-                'backend': backend,
-                'Shots': shots,
-                'seed': randomstate,
-                'Layers': numLayers,
-                'Max_samples': maxSamples,
-                'Max_features': feature,
-                'LearningRate': learningRate,
-                'BatchSize': batch,
-                'Epoch': epochs,
-                'numPredictors': numPredictors
+            model_factory_params = {
+                "Nqubits": adjustedQubits,
+                "model": name,
+                "Embedding": embedding,
+                "Ansatz": ansatz,
+                "N_class": numClasses,
+                "backend": backend,
+                "Shots": shots,
+                "seed": randomstate,
+                "Layers": numLayers,
+                "Max_samples": maxSamples,
+                "Max_features": feature,
+                "LearningRate": learningRate,
+                "BatchSize": batch,
+                "Epoch": epochs,
+                "numPredictors": numPredictors
             }
-            
+
             preprocessing = prepFactory.GetPreprocessing(ansatz=ansatz, embedding=embedding)
             X_train_processed = preprocessing.fit_transform(X_train, y=y_train)
             X_test_processed = preprocessing.transform(X_test)
-            
-            execution_args.append((
-                model_params, X_train_processed, y_train, X_test_processed, y_test,
-                predictions, runs, customMetric, name, embedding, ansatz, feature
-            ))
 
-        if self.sequential or backend == "Lightning.GPU" or nqubits >= self.threshold:
-            # Sequential execution
-            for args in execution_args:
-                model_params, X_train_p, y_train, X_test_p, y_test, preds, runs, \
-                custom_metric, name, embedding, ansatz, feature = args
-                
-                exe_args = (model_params, X_train_p, y_train, X_test_p, y_test, 
-                           preds, runs, custom_metric)
-                exeT, accuracy, b_accuracy, f1, custom, _ = self._executeModel(exe_args)
-                
-                self._append_results(NAMES, EMBEDDINGS, ANSATZ, ACCURACY, B_ACCURACY,
-                                    FEATURES, F1, TIME, CUSTOM, name, embedding, ansatz,
-                                    feature, accuracy, b_accuracy, f1, exeT, custom)
+            all_executions.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, runs, customMetric))
+ 
+        # Execute all models in parallel
+        if self.sequential:
+            results = [self.execute_model(*execution_params) for execution_params in all_executions]
         else:
-            # Parallel execution using multiprocessing
-            num_processes = min(len(execution_args), psutil.cpu_count(logical=False))
-            with Pool(processes=num_processes) as pool:
-                results = []
-                for args in execution_args:
-                    model_params, X_train_p, y_train, X_test_p, y_test, preds, runs, \
-                    custom_metric, name, embedding, ansatz, feature = args
-                    
-                    exe_args = (model_params, X_train_p, y_train, X_test_p, y_test, 
-                               preds, runs, custom_metric)
-                    result = pool.apply_async(self._executeModel, (exe_args,))
-                    results.append((result, name, embedding, ansatz, feature))
-                
-                for result, name, embedding, ansatz, feature in results:
-                    exeT, accuracy, b_accuracy, f1, custom, _ = result.get()
-                    self._append_results(NAMES, EMBEDDINGS, ANSATZ, ACCURACY, B_ACCURACY,
-                                        FEATURES, F1, TIME, CUSTOM, name, embedding, ansatz,
-                                        feature, accuracy, b_accuracy, f1, exeT, custom)
-        
-        return self._create_results_dataframe(NAMES, EMBEDDINGS, ANSATZ, FEATURES,
-                                             ACCURACY, B_ACCURACY, F1, CUSTOM, TIME,
-                                             customMetric, showTable)
+            results = Parallel(n_jobs=max_models_parallel, prefer='processes')(
+                delayed(self.execute_model)(*execution_params) for execution_params in all_executions
+            )
 
-    # _append_results and _create_results_dataframe methods remain unchanged
-    def _append_results(self, NAMES, EMBEDDINGS, ANSATZ, ACCURACY, B_ACCURACY,
-                        FEATURES, F1, TIME, CUSTOM, name, embedding, ansatz,
-                        feature, accuracy, b_accuracy, f1, exeT, custom):
-        NAMES.append(name)
-        EMBEDDINGS.append(embedding)
-        ANSATZ.append(ansatz)
-        ACCURACY.append(accuracy)
-        B_ACCURACY.append(b_accuracy)
-        FEATURES.append(feature)
-        F1.append(f1)
-        TIME.append(exeT)
-        CUSTOM.append(custom)
+        # Process results
+        scores = pd.DataFrame(results, columns=["Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"])
 
-    def _create_results_dataframe(self, NAMES, EMBEDDINGS, ANSATZ, FEATURES,
-                                 ACCURACY, B_ACCURACY, F1, CUSTOM, TIME,
-                                 customMetric, showTable):
-        if customMetric is None:
-            scores = pd.DataFrame({
-                "Model": NAMES,
-                "Embedding": EMBEDDINGS,
-                "Ansatz": ANSATZ,
-                "Features": FEATURES,
-                "Accuracy": ACCURACY,
-                "Balanced Accuracy": B_ACCURACY,
-                "F1 Score": F1,
-                "Time taken": TIME,
-            })
-        else:
-            scores = pd.DataFrame({
-                "Model": NAMES,
-                "Embedding": EMBEDDINGS,
-                "Ansatz": ANSATZ,
-                "Features": FEATURES,
-                "Accuracy": ACCURACY,
-                "Balanced Accuracy": B_ACCURACY,
-                "F1 Score": F1,
-                customMetric.__name__: CUSTOM,
-                "Time taken": TIME,
-            })
-        
         if showTable:
             print(scores.to_markdown())
-        
+
         return scores
