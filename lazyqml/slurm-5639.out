@@ -41,3 +41,5 @@ PREPROCESSING TIME: 0.15758848190307617
 [Parallel(n_jobs=16)]: Done   1 tasks      | elapsed:  3.8min
 /home/diegogv/.conda/envs/lazyqml/lib/python3.10/site-packages/sklearn/utils/validation.py:1339: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().
   y = column_or_1d(y, warn=True)
+[Parallel(n_jobs=16)]: Done   3 out of  12 | elapsed:  5.1min remaining: 15.4min
+[Parallel(n_jobs=16)]: Done   5 out of  12 | elapsed:  5.2min remaining:  7.3min
