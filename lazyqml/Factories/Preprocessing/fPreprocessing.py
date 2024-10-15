@@ -5,6 +5,10 @@ from Global.globalEnums import *
 from Factories.Preprocessing.Pca import *
 from Factories.Preprocessing.Sanitizer import *
 
+from Factories.Preprocessing._PcaAmp import *
+from Factories.Preprocessing._PcaTreeAmp import *
+from Factories.Preprocessing._PcaTree import *
+
 class PreprocessingFactory:
     def __init__(self, nqubits) -> None:
         self.nqubits = nqubits
@@ -14,10 +18,10 @@ class PreprocessingFactory:
 
     def GetPreprocessing(self, embedding, ansatz):
         if embedding == Embedding.AMP and ansatz == Ansatzs.TREE_TENSOR:
-            return Pca(self.nqubits, 2**(2**(self.nqubits.bit_length()-1)))
+            return PcaTreeAmp(self.nqubits)
         elif embedding == Embedding.AMP:
-            return Pca(self.nqubits, 2**self.nqubits)
+            return PcaAmp(self.nqubits)
         elif ansatz == Ansatzs.TREE_TENSOR:
-            return Pca(self.nqubits, 2**(self.nqubits.bit_length()-1))
+            return PcaTree(self.nqubits)
         else:
-            return Pca(self.nqubits, self.nqubits)
+            return Pca(self.nqubits)

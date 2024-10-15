@@ -1,0 +1,43 @@
+no change     /opt/miniconda3/condabin/conda
+no change     /opt/miniconda3/bin/conda
+no change     /opt/miniconda3/bin/conda-env
+no change     /opt/miniconda3/bin/activate
+no change     /opt/miniconda3/bin/deactivate
+no change     /opt/miniconda3/etc/profile.d/conda.sh
+no change     /opt/miniconda3/etc/fish/conf.d/conda.fish
+no change     /opt/miniconda3/shell/condabin/Conda.psm1
+no change     /opt/miniconda3/shell/condabin/conda-hook.ps1
+no change     /opt/miniconda3/lib/python3.11/site-packages/xontrib/conda.xsh
+no change     /opt/miniconda3/etc/profile.d/conda.csh
+no change     /home/diegogv/.bashrc
+No action taken.
+[Parallel(n_jobs=16)]: Using backend LokyBackend with 16 concurrent workers.
+PARAMETERS
+Embeddings: {<Embedding.RZ: 3>, <Embedding.RX: 2>, <Embedding.RY: 4>}	Batch Auto: True	Sequential: False	Node: slave5	Dataset: monks
+[VERBOSE] Validation successful, fitting the model...
+(4, <Model.QSVM: 4>, <Embedding.RX: 2>, None, None)
+(4, <Model.QSVM: 4>, <Embedding.RZ: 3>, None, None)
+(4, <Model.QSVM: 4>, <Embedding.RY: 4>, None, None)
+(8, <Model.QSVM: 4>, <Embedding.RX: 2>, None, None)
+(8, <Model.QSVM: 4>, <Embedding.RZ: 3>, None, None)
+(8, <Model.QSVM: 4>, <Embedding.RY: 4>, None, None)
+(16, <Model.QSVM: 4>, <Embedding.RX: 2>, None, None)
+(16, <Model.QSVM: 4>, <Embedding.RZ: 3>, None, None)
+(16, <Model.QSVM: 4>, <Embedding.RY: 4>, None, None)
+(24, <Model.QSVM: 4>, <Embedding.RX: 2>, None, None)
+(24, <Model.QSVM: 4>, <Embedding.RZ: 3>, None, None)
+(24, <Model.QSVM: 4>, <Embedding.RY: 4>, None, None)
+PREPROCESSING TIME: 0.15758848190307617
+/home/diegogv/.conda/envs/lazyqml/lib/python3.10/site-packages/sklearn/utils/validation.py:1339: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().
+  y = column_or_1d(y, warn=True)
+/home/diegogv/.conda/envs/lazyqml/lib/python3.10/site-packages/sklearn/utils/validation.py:1339: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().
+  y = column_or_1d(y, warn=True)
+/home/diegogv/.conda/envs/lazyqml/lib/python3.10/site-packages/sklearn/utils/validation.py:1339: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().
+  y = column_or_1d(y, warn=True)
+/home/diegogv/.conda/envs/lazyqml/lib/python3.10/site-packages/sklearn/utils/validation.py:1339: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().
+  y = column_or_1d(y, warn=True)
+/home/diegogv/.conda/envs/lazyqml/lib/python3.10/site-packages/sklearn/utils/validation.py:1339: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().
+  y = column_or_1d(y, warn=True)
+[Parallel(n_jobs=16)]: Done   1 tasks      | elapsed:  3.8min
+/home/diegogv/.conda/envs/lazyqml/lib/python3.10/site-packages/sklearn/utils/validation.py:1339: DataConversionWarning: A column-vector y was passed when a 1d array was expected. Please change the shape of y to (n_samples, ), for example using ravel().
+  y = column_or_1d(y, warn=True)

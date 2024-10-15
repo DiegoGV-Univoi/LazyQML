@@ -1,17 +1,19 @@
 import numpy as np
 import pandas as pd
-
+import sys
 from tabulate import tabulate
-from pydantic import BaseModel, Field, model_validator, field_validator, ValidationError
+from pydantic import BaseModel, Field, model_validator, field_validator, ValidationError, conset
 from pydantic.config import ConfigDict
 from typing import List, Callable, Optional, Set
-from typing_extensions import Annotated
+from typing_extensions import Annotated, Set
 from Factories.Preprocessing.fPreprocessing import PreprocessingFactory
 from Global.globalEnums import *
 from Utils.Utils import *
 from Utils.Validator import *
 from Factories.Dispatchers.Dispatcher import *
 from sklearn.impute import SimpleImputer
+from ucimlrepo import fetch_ucirepo
+from sklearn.preprocessing import LabelEncoder
 
 class QuantumClassifier(BaseModel):
     """
@@ -77,8 +79,9 @@ class QuantumClassifier(BaseModel):
     | qnn         | ZZ_embedding        | two_local          |   0.461988 |            0.455954 |  0.455954 |   0.467481 |      2.13294 |
     """
     model_config = ConfigDict(strict=True)
-    
-    nqubits: Annotated[int, Field(gt=0)] = 8
+
+    # nqubits: Annotated[int, Field(gt=0)] = 8
+    nqubits: Annotated[Set[int], Field(description="Set of qubits, each must be greater than 0")]
     randomstate: int = 1234
     predictions: bool = False
     ignoreWarnings: bool = True
@@ -101,13 +104,24 @@ class QuantumClassifier(BaseModel):
     customMetric: Optional[Callable] = None
     customImputerNum: Optional[Any] = None
     customImputerCat: Optional[Any] = None
+    batch: Optional[bool] = True
+
+    @field_validator('nqubits', mode='before')
+    def check_nqubits_positive(cls, value):
+        if not isinstance(value, set):
+            raise TypeError('nqubits must be a set of integers')
+
+        if any(v <= 0 for v in value):
+            raise ValueError('Each value in nqubits must be greater than 0')
+
+        return value
 
     @field_validator('features')
     def validate_features(cls, v):
         if not all(0 < x <= 1 for x in v):
             raise ValueError("All features must be greater than 0 and less than or equal to 1")
         return v
-    
+
     @field_validator('customMetric')
     def validate_custom_metric_field(cls, metric):
         if metric is None:
@@ -116,7 +130,7 @@ class QuantumClassifier(BaseModel):
         # Check the function signature
         sig = inspect.signature(metric)
         params = list(sig.parameters.values())
-        
+
         if len(params) < 2 or params[0].name != 'y_true' or params[1].name != 'y_pred':
             raise ValueError(
                 f"Function {metric.__name__} does not have the required signature. "
@@ -126,7 +140,7 @@ class QuantumClassifier(BaseModel):
         # Test the function by passing dummy arguments
         y_true = np.array([0, 1, 1, 0])  # Example ground truth labels
         y_pred = np.array([0, 1, 0, 0])  # Example predicted labels
-        
+
         try:
             result = metric(y_true, y_pred)
         except Exception as e:
@@ -137,9 +151,9 @@ class QuantumClassifier(BaseModel):
             raise ValueError(
                 f"Function {metric.__name__} returned {result}, which is not a scalar value."
             )
-        
+
         return metric
-    
+
     @field_validator('customImputerCat', 'customImputerNum')
     def check_preprocessor_methods(cls, preprocessor):
         # Check if preprocessor is an instance of a class
@@ -184,8 +198,8 @@ class QuantumClassifier(BaseModel):
         return preprocessor
 
     def fit(self, X_train, y_train, X_test, y_test,showTable=True):
-        
-        
+
+
         printer.set_verbose(verbose=self.verbose)
         # Validation model to ensure input parameters are DataFrames and sizes match
         FitParamsValidator(
@@ -195,11 +209,11 @@ class QuantumClassifier(BaseModel):
             test_y=y_test
         )
         printer.print("Validation successful, fitting the model...")
-        
+
         # Fix seed
         fixSeed(self.randomstate)
         d = Dispatcher(sequential=self.sequential,threshold=self.threshold)
-        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,batch=self.batchSize)
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch)
 
     def repeated_cross_validation(self, X, y, n_splits=5, n_repeats=10, showTable=True):
         pass
@@ -208,33 +222,72 @@ class QuantumClassifier(BaseModel):
         pass
 
 if __name__ == '__main__':
-    sequential = False
-    classifier = QuantumClassifier(nqubits=8,classifiers={Model.QSVM},embeddings={Embedding.ALL},ansatzs={Ansatzs.ALL},features={1},epochs=10,verbose=False,runs=4,sequential=sequential,threshold=27,backend=Backend.lightningQubit)
-    # print("QuantumClassifier successfully validated!!")
-    from sklearn.datasets import load_breast_cancer,load_iris
-    from sklearn.model_selection import train_test_split
-    # Load data
-    data = load_iris()
-    X = data.data
-    y = data.target
 
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.9,random_state =1234)  
+    Rotationals_family = sys.argv[1].lower() == 'true'
+    Batch_auto = sys.argv[2].lower() == 'true'
+    Sequential = sys.argv[3].lower() == 'true'
+    Node = sys.argv[4].lower()
+
+
+    if Rotationals_family:
+        embeddings = {Embedding.RX,Embedding.RY,Embedding.RZ}
+    else:
+        embeddings = {Embedding.ZZ,Embedding.AMP}
+
+
+
+
+    from sklearn.datasets import load_iris
+    from sklearn.model_selection import train_test_split
+
+    if Node == "slave4":
+
+        dataset="iris"
+
+        # Load data
+        data = load_iris()
+        X = data.data
+        y = data.target
+
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.4,random_state =1234)
+    elif Node == "slave5":
+        dataset="monks"
+        # fetch dataset
+        monk_s_problems = fetch_ucirepo(id=70)
+
+        # data (as pandas dataframes)
+        X = monk_s_problems.data.features
+        y = monk_s_problems.data.targets
+
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.4,random_state =1234)
+    elif Node == "slave3":
+        dataset="tic tac toe"
+        tic_tac_toe_endgame = fetch_ucirepo(id=101)
+
+        # data (as pandas dataframes)
+        X = tic_tac_toe_endgame.data.features
+        y = tic_tac_toe_endgame.data.targets
+
+        # Assume the features are in a DataFrame format
+        X = pd.DataFrame(X)
+
+        # Initialize the Label Encoder
+        label_encoder = LabelEncoder()
+
+        # Apply label encoding to each column (if you have more than one categorical feature)
+        for column in X.columns:
+            X[column] = label_encoder.fit_transform(X[column])
+
+        # Step 3: Split data
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=1234)
+
+    print(f"PARAMETERS\nEmbeddings: {embeddings}\tBatch Auto: {Batch_auto}\tSequential: {Sequential}\tNode: {Node}\tDataset: {dataset}")
+
+    classifier = QuantumClassifier(nqubits={4,8,16,24},classifiers={Model.QSVM},embeddings=embeddings,features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto)
+
     start = time.time()
     classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
-    print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not sequential}")
+    print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not Sequential}")
 
-# classifier = QuantumClassifier(nqubits=8,classifiers={Model.QNN},embeddings={Embedding.ALL},ansatzs={Ansatzs.ALL},features={1},epochs=50,verbose=False,runs=5,sequential=True,threshold=27,backend=Backend.lightningQubit)
-# # print("QuantumClassifier successfully validated!!")
-# from sklearn.datasets import load_breast_cancer,load_iris
-# from sklearn.model_selection import train_test_split
-# # Load data
-# data = load_iris()
-# X = data.data
-# y = data.target
-
-# # Split data
-# X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.9,random_state =1234)  
-# start = time.time()
-# classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
-# print(f"SEQUENTIAL TOTAL TIME: {time.time()-start}s")

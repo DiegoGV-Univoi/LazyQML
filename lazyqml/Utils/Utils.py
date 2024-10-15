@@ -7,26 +7,26 @@ import psutil
 class VerbosePrinter:
     _instance = None
     _initialized = False
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(VerbosePrinter, cls).__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
         if not VerbosePrinter._initialized:
             self.verbose = False
             VerbosePrinter._initialized = True
-    
+
     def set_verbose(self, verbose: bool):
         self.verbose = verbose
-    
+
     def print(self, message: str):
         if self.verbose:
             print(f"[VERBOSE] {message}")
         else:
             pass
-    
+
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
@@ -42,15 +42,17 @@ def adjustQubits(nqubits, numClasses):
         nqubits *= 2
     return int(nqubits)
 
-def create_combinations(classifiers, embeddings, ansatzs, features):
+
+def create_combinations(classifiers, embeddings, ansatzs, features, qubits):
     classifier_list = []
     embedding_list = []
     ansatzs_list = []
 
-    # Make sure don't have duplicated items
+    # Make sure we don't have duplicated items
     classifiers = list(classifiers)
     embeddings = list(embeddings)
     ansatzs = list(ansatzs)
+    qubits = sorted(list(qubits))   # Convert the qubits set to a list as well
 
     if Model.ALL in classifiers:
         classifier_list = Model.list()
@@ -67,18 +69,21 @@ def create_combinations(classifiers, embeddings, ansatzs, features):
     if Ansatzs.ALL in ansatzs:
         ansatzs_list = Ansatzs.list()
         ansatzs_list.remove(Ansatzs.ALL)
-    else: 
+    else:
         ansatzs_list = ansatzs
 
     combinations = []
 
     for classifier in classifier_list:
         if classifier == Model.QSVM:
-            combinations.extend(list(product([classifier], embedding_list, [None], [None])))
+            # QSVM doesn't use ansatzs or features but uses qubits (first in the product)
+            combinations.extend(list(product(qubits, [classifier], embedding_list, [None], [None])))
         elif classifier == Model.QNN:
-            combinations.extend(list(product([classifier], embedding_list, ansatzs_list, [None])))
+            # QNN uses ansatzs and qubits (qubits first)
+            combinations.extend(list(product(qubits, [classifier], embedding_list, ansatzs_list, [None])))
         elif classifier == Model.QNN_BAG:
-            combinations.extend(list(product([classifier], embedding_list, ansatzs_list, features)))
+            # QNN_BAG uses ansatzs, features, and qubits (qubits first)
+            combinations.extend(list(product(qubits, [classifier], embedding_list, ansatzs_list, features)))
 
     return combinations
 
@@ -90,13 +95,13 @@ def calculate_quantum_memory(num_qubits, overhead=2):
     # Each qubit state requires 2 complex numbers (amplitude and phase)
     # Each complex number uses 2 double-precision floats (16 bytes)
     bytes_per_qubit_state = 16
-    
+
     # Number of possible states is 2^n, where n is the number of qubits
     num_states = 2 ** num_qubits
-    
+
     # Total memory in bytes
     total_memory_bytes = num_states * bytes_per_qubit_state * overhead
-    
+
     # Convert to more readable units
 
     return total_memory_bytes / (1024**3)
