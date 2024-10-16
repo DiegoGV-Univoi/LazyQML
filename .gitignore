@@ -107,5 +107,5 @@ ENV/
 .vscode/
 
 # Ignore specific output files from lazyqml
-lazyqml/Lanza.sh
-lazyqml/*.out
+.lazyqml/Lanza.sh
+.lazyqml/*.out
