@@ -1,0 +1,15 @@
+no change     /opt/miniconda3/condabin/conda
+no change     /opt/miniconda3/bin/conda
+no change     /opt/miniconda3/bin/conda-env
+no change     /opt/miniconda3/bin/activate
+no change     /opt/miniconda3/bin/deactivate
+no change     /opt/miniconda3/etc/profile.d/conda.sh
+no change     /opt/miniconda3/etc/fish/conf.d/conda.fish
+no change     /opt/miniconda3/shell/condabin/Conda.psm1
+no change     /opt/miniconda3/shell/condabin/conda-hook.ps1
+no change     /opt/miniconda3/lib/python3.11/site-packages/xontrib/conda.xsh
+no change     /opt/miniconda3/etc/profile.d/conda.csh
+no change     /home/diegogv/.bashrc
+No action taken.
+[Parallel(n_jobs=1)]: Done   1 tasks      | elapsed: 14.5min
+[Parallel(n_jobs=1)]: Done   4 tasks      | elapsed: 57.1min

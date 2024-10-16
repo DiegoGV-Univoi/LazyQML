@@ -1,0 +1,62 @@
+no change     /opt/miniconda3/condabin/conda
+no change     /opt/miniconda3/bin/conda
+no change     /opt/miniconda3/bin/conda-env
+no change     /opt/miniconda3/bin/activate
+no change     /opt/miniconda3/bin/deactivate
+no change     /opt/miniconda3/etc/profile.d/conda.sh
+no change     /opt/miniconda3/etc/fish/conf.d/conda.fish
+no change     /opt/miniconda3/shell/condabin/Conda.psm1
+no change     /opt/miniconda3/shell/condabin/conda-hook.ps1
+no change     /opt/miniconda3/lib/python3.11/site-packages/xontrib/conda.xsh
+no change     /opt/miniconda3/etc/profile.d/conda.csh
+no change     /home/diegogv/.bashrc
+No action taken.
+[Parallel(n_jobs=8)]: Using backend LokyBackend with 8 concurrent workers.
+PARAMETERS
+Embeddings: {<Embedding.ZZ: 5>}	Batch Auto: True	Sequential: False	Node: slave5	Dataset: iris	Qubits: 16	 Folds\Repeats: (8, 2)	Cores: 8
+[VERBOSE] Validation successful, fitting the model...
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 0, 0)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 0, 1)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 0, 2)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 0, 3)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 0, 4)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 0, 5)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 0, 6)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 0, 7)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 1, 0)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 1, 1)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 1, 2)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 1, 3)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 1, 4)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 1, 5)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 1, 6)
+(16, <Model.QSVM: 4>, <Embedding.ZZ: 5>, None, None, 1, 7)
+PREPROCESSING TIME: 0.0728757381439209
+[Parallel(n_jobs=8)]: Done   3 out of  16 | elapsed: 17.5min remaining: 76.0min
+[Parallel(n_jobs=8)]: Done   5 out of  16 | elapsed: 17.7min remaining: 39.0min
+[Parallel(n_jobs=8)]: Done   7 out of  16 | elapsed: 17.9min remaining: 23.1min
+[Parallel(n_jobs=8)]: Done   9 out of  16 | elapsed: 34.9min remaining: 27.2min
+[Parallel(n_jobs=8)]: Done  11 out of  16 | elapsed: 35.0min remaining: 15.9min
+[Parallel(n_jobs=8)]: Done  13 out of  16 | elapsed: 35.5min remaining:  8.2min
+[Parallel(n_jobs=8)]: Done  16 out of  16 | elapsed: 35.8min finished
+EXECUTING TIME: 2148.898868083954
+|    |   Qubits | Model      | Embedding    | Ansatz   | Features   |   Time taken |   Accuracy |   Balanced Accuracy |   F1 Score | Custom Metric   | Predictions   |
+|---:|---------:|:-----------|:-------------|:---------|:-----------|-------------:|-----------:|--------------------:|-----------:|:----------------|:--------------|
+|  0 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1072.56 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  1 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1072.63 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  2 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1047.43 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  3 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1048.02 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  4 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1072.55 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  5 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1060.79 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  6 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1049    |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  7 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1048.47 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  8 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1045.39 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+|  9 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1046.38 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+| 10 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1046.62 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+| 11 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1046.32 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+| 12 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1065.92 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+| 13 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1072.53 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+| 14 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1072.57 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+| 15 |       16 | Model.QSVM | Embedding.ZZ |          | ~          |      1072.27 |        0.8 |                 0.8 |    0.80009 |                 | []            |
+RESULTS TIME: 0.02641773223876953
+TOTAL TIME: 2149.003639936447s	 PARALLEL: True

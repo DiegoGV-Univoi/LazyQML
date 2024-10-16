@@ -244,13 +244,41 @@ if __name__ == '__main__':
 
     from sklearn.datasets import load_iris
 
-    dataset="iris"
+    dataset="vote"
 
-    # Load data
-    data = load_iris()
-    X = data.data
-    y = data.target
+    # Fetch dataset
+    congressional_voting_records = fetch_ucirepo(id=105)
 
+    # Data (as pandas dataframes)
+    X = congressional_voting_records.data.features
+    y = congressional_voting_records.data.targets
+
+    # Mapping categorical values to numerical values
+    X_numerical = X.replace({'y': 1, 'n': 0, '?': float('NaN')})
+
+    # Option 1: Replace NaNs with a specific value (e.g., -1 or 0)
+    X_numerical_filled = X_numerical.fillna(-1)
+
+    # Or, if you prefer to replace NaN with the column mean, you can use:
+    X_numerical_filled_mean = X_numerical.apply(lambda col: col.fillna(col.mean()))
+
+    print(X_numerical_filled.head())
+    print(X_numerical_filled_mean.head())
+
+    # Handling target variable
+    y_numerical = y.replace({'republican': 1, 'democrat': 0})
+
+    print(y_numerical.head())
+
+    from sklearn.impute import SimpleImputer
+
+    # Imputer for replacing missing values with the mean of each column
+    imputer = SimpleImputer(strategy='mean')
+    X_imputed = pd.DataFrame(imputer.fit_transform(X_numerical), columns=X.columns)
+
+    print(X_imputed.head())
+    X = X_imputed
+    y = y_numerical
 
     if Node == "slave1":
         repeats = 4
@@ -259,6 +287,9 @@ if __name__ == '__main__':
         repeats = 4
         embeddings = {Embedding.ZZ}
     elif Node == "slave5":
+        repeats = 2
+        embeddings = {Embedding.ZZ}
+    elif Node == "slave4":
         repeats = 2
         embeddings = {Embedding.ZZ}
 

@@ -44,7 +44,7 @@ class DispatcherCV:
                 embeddings, features, learningRate, epochs, runs, batch,
                 maxSamples, verbose, customMetric, customImputerNum,
                 customImputerCat, X_train, y_train, X_test, y_test,
-                auto, showTable=True):
+                auto, cores,showTable=True):
         t_pre= time.time()
         combinations = create_combinationsCV(qubits=nqubits,
                                         classifiers=classifiers,
@@ -123,11 +123,11 @@ class DispatcherCV:
             results = [self.execute_model(*execution_params) for execution_params in all_executions]
         else:
             if auto:
-                results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
+                results = Parallel(n_jobs=cores, prefer='processes',batch_size='auto',verbose=10)(
                     delayed(self.execute_model)(*execution_params) for execution_params in all_executions
                 )
             else:
-                results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size=1,verbose=10)(
+                results = Parallel(n_jobs=cores, prefer='processes',batch_size=1,verbose=10)(
                     delayed(self.execute_model)(*execution_params) for execution_params in all_executions
                 )
         if self.timeM:

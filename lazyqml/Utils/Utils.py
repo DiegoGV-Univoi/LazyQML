@@ -43,6 +43,52 @@ def adjustQubits(nqubits, numClasses):
     return int(nqubits)
 
 
+def create_combinationsCV(classifiers, embeddings, ansatzs, features, qubits, FoldID, RepeatID):
+    classifier_list = []
+    embedding_list = []
+    ansatzs_list = []
+
+    # Make sure we don't have duplicated items
+    classifiers = list(classifiers)
+    embeddings = list(embeddings)
+    ansatzs = list(ansatzs)
+    qubits = sorted(list(qubits))   # Convert the qubits set to a list as well
+    FoldID = sorted(list(FoldID))
+    RepeatID = sorted(list(RepeatID))
+
+    if Model.ALL in classifiers:
+        classifier_list = Model.list()
+        classifier_list.remove(Model.ALL)
+    else:
+        classifier_list = classifiers
+
+    if Embedding.ALL in embeddings:
+        embedding_list = Embedding.list()
+        embedding_list.remove(Embedding.ALL)
+    else:
+        embedding_list = embeddings
+
+    if Ansatzs.ALL in ansatzs:
+        ansatzs_list = Ansatzs.list()
+        ansatzs_list.remove(Ansatzs.ALL)
+    else:
+        ansatzs_list = ansatzs
+
+    combinations = []
+
+    for classifier in classifier_list:
+        if classifier == Model.QSVM:
+            # QSVM doesn't use ansatzs or features but uses qubits (first in the product)
+            combinations.extend(list(product(qubits, [classifier], embedding_list, [None], [None], RepeatID, FoldID)))
+        elif classifier == Model.QNN:
+            # QNN uses ansatzs and qubits (qubits first)
+            combinations.extend(list(product(qubits, [classifier], embedding_list, ansatzs_list, [None], RepeatID, FoldID)))
+        elif classifier == Model.QNN_BAG:
+            # QNN_BAG uses ansatzs, features, and qubits (qubits first)
+            combinations.extend(list(product(qubits, [classifier], embedding_list, ansatzs_list, features, RepeatID, FoldID)))
+
+    return combinations
+
 def create_combinations(classifiers, embeddings, ansatzs, features, qubits):
     classifier_list = []
     embedding_list = []
