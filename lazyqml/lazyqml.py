@@ -10,6 +10,7 @@ from Factories.Preprocessing.fPreprocessing import PreprocessingFactory
 from Global.globalEnums import *
 from Utils.Utils import *
 from Utils.Validator import *
+from Factories.Dispatchers.DispatcherCV import *
 from Factories.Dispatchers.Dispatcher import *
 from sklearn.impute import SimpleImputer
 from ucimlrepo import fetch_ucirepo
@@ -215,79 +216,55 @@ class QuantumClassifier(BaseModel):
         d = Dispatcher(sequential=self.sequential,threshold=self.threshold)
         d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch)
 
-    def repeated_cross_validation(self, X, y, n_splits=5, n_repeats=10, showTable=True):
-        pass
+    def repeated_cross_validation(self, X, y, n_splits=10, n_repeats=5, showTable=True):
+        printer.set_verbose(verbose=self.verbose)
+        # Validation model to ensure input parameters are DataFrames and sizes match
+        FitParamsValidatorCV(
+            x=X,
+            y=y
+        )
+        printer.print("Validation successful, fitting the model...")
+
+        # Fix seed
+        fixSeed(self.randomstate)
+        d = DispatcherCV(sequential=self.sequential,threshold=self.threshold,repeats=n_repeats,folds=n_splits)
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat,X_train=X ,X_test=X,y_test=y,y_train=y,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch)
 
     def leave_one_out(self, X, y, showTable=True):
         pass
 
 if __name__ == '__main__':
-
-    Rotationals_family = sys.argv[1].lower() == 'true'
-    Batch_auto = sys.argv[2].lower() == 'true'
-    Sequential = sys.argv[3].lower() == 'true'
-    Node = sys.argv[4].lower()
-
-
-    if Rotationals_family:
-        embeddings = {Embedding.RX,Embedding.RY,Embedding.RZ}
-    else:
-        embeddings = {Embedding.ZZ,Embedding.AMP}
-
-
+    Batch_auto = True
+    Sequential = sys.argv[1].lower() == 'true'
+    Node = sys.argv[2].lower()
+    qubits = int(sys.argv[3])
 
 
     from sklearn.datasets import load_iris
-    from sklearn.model_selection import train_test_split
 
-    if Node == "slave4":
+    dataset="iris"
 
-        dataset="iris"
+    # Load data
+    data = load_iris()
+    X = data.data
+    y = data.target
 
-        # Load data
-        data = load_iris()
-        X = data.data
-        y = data.target
 
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.4,random_state =1234)
+    if Node == "slave1":
+        repeats = 4
+        embeddings = {Embedding.AMP}
+    elif Node == "slave2":
+        repeats = 4
+        embeddings = {Embedding.ZZ}
     elif Node == "slave5":
-        dataset="monks"
-        # fetch dataset
-        monk_s_problems = fetch_ucirepo(id=70)
+        repeats = 2
+        embeddings = {Embedding.RX,Embedding.RY, Embedding.RZ}
 
-        # data (as pandas dataframes)
-        X = monk_s_problems.data.features
-        y = monk_s_problems.data.targets
+    print(f"PARAMETERS\nEmbeddings: {embeddings}\tBatch Auto: {Batch_auto}\tSequential: {Sequential}\tNode: {Node}\tDataset: {dataset}\tQubits: {qubits}\t Folds\\Repeats: {(8,repeats)}")
 
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.4,random_state =1234)
-    elif Node == "slave3":
-        dataset="tic tac toe"
-        tic_tac_toe_endgame = fetch_ucirepo(id=101)
-
-        # data (as pandas dataframes)
-        X = tic_tac_toe_endgame.data.features
-        y = tic_tac_toe_endgame.data.targets
-
-        # Assume the features are in a DataFrame format
-        X = pd.DataFrame(X)
-
-        # Initialize the Label Encoder
-        label_encoder = LabelEncoder()
-
-        # Apply label encoding to each column (if you have more than one categorical feature)
-        for column in X.columns:
-            X[column] = label_encoder.fit_transform(X[column])
-
-        # Step 3: Split data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=1234)
-
-    print(f"PARAMETERS\nEmbeddings: {embeddings}\tBatch Auto: {Batch_auto}\tSequential: {Sequential}\tNode: {Node}\tDataset: {dataset}")
-
-    classifier = QuantumClassifier(nqubits={4,8,16,24},classifiers={Model.QSVM},embeddings=embeddings,features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto)
+    classifier = QuantumClassifier(nqubits={qubits},classifiers={Model.QSVM},embeddings=embeddings,features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto)
 
     start = time.time()
-    classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)
+    classifier.repeated_cross_validation(X,y,n_repeats=repeats,n_splits=8)
     print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not Sequential}")
 
