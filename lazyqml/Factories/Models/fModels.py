@@ -1,6 +1,6 @@
-from lazyqml.Factories.Models.QSVM import *
-from lazyqml.Factories.Models.QNNBag import *
-from lazyqml.Factories.Models.QNNTorch import *
+from lazyqml.Factories.Models.QSVM import QSVM
+from lazyqml.Factories.Models.QNNBag import QNNBag
+from lazyqml.Factories.Models.QNNTorch import QNNTorch
 from lazyqml.Global.globalEnums import *
 
 class ModelFactory:
