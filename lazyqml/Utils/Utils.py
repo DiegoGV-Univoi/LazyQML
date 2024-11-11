@@ -1,4 +1,4 @@
-from Global.globalEnums import *
+from lazyqml.Global.globalEnums import *
 from itertools import product
 import numpy as np
 import torch

@@ -8,12 +8,12 @@ from typing import List, Callable, Optional, Set
 from typing_extensions import Annotated, Set
 
 
-from .Factories.Preprocessing.fPreprocessing import PreprocessingFactory
-from .Global.globalEnums import *
-from .Utils.Utils import *
-from .Utils.Validator import *
-from .Factories.Dispatchers.DispatcherCV import *
-from .Factories.Dispatchers.Dispatcher import *
+from lazyqml.Factories.Preprocessing.fPreprocessing import PreprocessingFactory
+from lazyqml.Global.globalEnums import *
+from lazyqml.Utils.Utils import *
+from lazyqml.Utils.Validator import *
+from lazyqml.Factories.Dispatchers.DispatcherCV import *
+from lazyqml.Factories.Dispatchers.Dispatcher import *
 from sklearn.impute import SimpleImputer
 from ucimlrepo import fetch_ucirepo
 from sklearn.preprocessing import LabelEncoder
