@@ -42,6 +42,18 @@ class Dispatcher:
             custom = customR / runs
 
         return model_factory_params['Nqubits'], model_factory_params['model'], model_factory_params['Embedding'], model_factory_params['Ansatz'], model_factory_params['Max_features'], exeT, accuracy, b_accuracy, f1, custom, preds
+    
+    def execute_model_simulation(self, model_factory_params, X_train, y_train, X_test, y_test, predictions,  customMetric):
+        #model = ModelFactory().getModel(**model_factory_params)
+        preds = []
+        accuracy, b_accuracy, f1, custom = 0, 0, 0, 0
+        custom = None
+
+        start = time.time()
+        print(f"Executing: { model_factory_params['Nqubits']}, {model_factory_params['model']}, {model_factory_params['Embedding']}, {model_factory_params['Ansatz']}, {model_factory_params['Max_features']}")
+        exeT = time.time() - start
+
+        return model_factory_params['Nqubits'], model_factory_params['model'], model_factory_params['Embedding'], model_factory_params['Ansatz'], model_factory_params['Max_features'], exeT, accuracy, b_accuracy, f1, custom, preds
 
     def dispatch(self, nqubits, randomstate, predictions, shots,
                 numPredictors, numLayers, classifiers, ansatzs, backend,
@@ -71,7 +83,10 @@ class Dispatcher:
             print(combination)
 
         # Prepare all model executions
-        all_executions = []
+        all_executions=[]
+        cpu_queue = []
+        gpu_queue = []
+
         for combination in combinations:
             qubits, name, embedding, ansatz, feature = combination
             feature = feature if feature is not None else "~"
@@ -117,13 +132,21 @@ class Dispatcher:
             # print(f"XTrain PROCESSED SHAPE: {X_train_processed.shape}")
 
 
-            all_executions.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, runs, customMetric))
+            if name == Model.QNN and qubits>=self.threshold:
+                gpu_queue.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, customMetric))
+            else:
+                cpu_queue.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, customMetric))
+
         if self.timeM:
             print(f"PREPROCESSING TIME: {time.time()-t_pre}")
         # Execute all models in parallel
         t_exe = time.time()
         if self.sequential:
-            results = [self.execute_model(*execution_params) for execution_params in all_executions]
+            print(f"CPU QUEUE:")
+            results_cpu = [self.execute_model_simulation(*execution_params) for execution_params in cpu_queue]
+            
+            print(f"GPU QUEUE:")
+            results_gpu = [self.execute_model_simulation(*execution_params) for execution_params in gpu_queue]
         else:
             if auto:
                 results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
@@ -137,7 +160,8 @@ class Dispatcher:
             print(f"EXECUTING TIME: {time.time()-t_exe}")
         # Process results
         t_res = time.time()
-        scores = pd.DataFrame(results, columns=["Qubits","Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"])
+        
+        scores = pd.DataFrame(results_cpu, columns=["Qubits","Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"])
 
         if showTable:
             print(scores.to_markdown())

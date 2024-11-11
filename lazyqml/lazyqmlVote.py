@@ -12,6 +12,7 @@ from Utils.Utils import *
 from Utils.Validator import *
 from Factories.Dispatchers.DispatcherCV import *
 from Factories.Dispatchers.Dispatcher import *
+from Factories.Dispatchers.DispatcherSIM import *
 from sklearn.impute import SimpleImputer
 from ucimlrepo import fetch_ucirepo
 from sklearn.preprocessing import LabelEncoder
@@ -228,7 +229,7 @@ class QuantumClassifier(BaseModel):
 
         # Fix seed
         fixSeed(self.randomstate)
-        d = DispatcherCV(sequential=self.sequential,threshold=self.threshold,repeats=n_repeats,folds=n_splits)
+        d = DispatcherSIM(sequential=self.sequential,threshold=self.threshold,repeats=n_repeats,folds=n_splits)
         d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat,X_train=X ,X_test=X,y_test=y,y_train=y,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch,cores=self.cores)
 
     def leave_one_out(self, X, y, showTable=True):
@@ -236,10 +237,9 @@ class QuantumClassifier(BaseModel):
 
 if __name__ == '__main__':
     Batch_auto = True
-    Sequential = sys.argv[1].lower() == 'true'
-    Node = sys.argv[2].lower()
-    qubits = int(sys.argv[3])
-    cores = int(sys.argv[4])
+    Sequential = 'true'
+    qubits = 16
+    cores = 16
 
 
     from sklearn.datasets import load_iris
@@ -280,24 +280,10 @@ if __name__ == '__main__':
     X = X_imputed
     y = y_numerical
 
-    if Node == "slave1":
-        repeats = 4
-        embeddings = {Embedding.AMP}
-    elif Node == "slave2":
-        repeats = 4
-        embeddings = {Embedding.ZZ}
-    elif Node == "slave5":
-        repeats = 2
-        embeddings = {Embedding.ZZ}
-    elif Node == "slave4":
-        repeats = 2
-        embeddings = {Embedding.ZZ}
-
-    print(f"PARAMETERS\nEmbeddings: {embeddings}\tBatch Auto: {Batch_auto}\tSequential: {Sequential}\tNode: {Node}\tDataset: {dataset}\tQubits: {qubits}\t Folds\\Repeats: {(8,repeats)}\tCores: {cores}")
-
-    classifier = QuantumClassifier(nqubits={qubits},classifiers={Model.QSVM},embeddings=embeddings,features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto,cores=cores)
+    
+    classifier = QuantumClassifier(nqubits={qubits},classifiers={Model.QSVM},embeddings={Embedding.ALL},features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto,cores=cores)
 
     start = time.time()
-    classifier.repeated_cross_validation(X,y,n_repeats=repeats,n_splits=8)
+    classifier.repeated_cross_validation(X,y,n_repeats=2,n_splits=8)
     print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not Sequential}")
 

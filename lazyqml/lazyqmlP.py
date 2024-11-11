@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
     print(f"PARAMETERS\nEmbeddings: {embeddings}\tBatch Auto: {Batch_auto}\tSequential: {Sequential}\tNode: {Node}\tDataset: {dataset}")
 
-    classifier = QuantumClassifier(nqubits={4,8,16},classifiers={Model.QSVM},embeddings=embeddings,features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto)
+    classifier = QuantumClassifier(nqubits={16},classifiers={Model.QNN},embeddings=Embedding.RX,ansatzs=Ansatzs.TwoLocal, epochs=10, features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto)
 
     start = time.time()
     classifier.fit(X_train=X_train,y_train=y_train,X_test=X_test,y_test=y_test)

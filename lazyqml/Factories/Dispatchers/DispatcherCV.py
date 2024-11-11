@@ -10,7 +10,7 @@ from joblib import Parallel, delayed
 from sklearn.model_selection import RepeatedKFold
 
 class DispatcherCV:
-    def __init__(self, sequential=False, threshold=27, time=True, folds=10, repeats=5):
+    def __init__(self, sequential=False, threshold=20, time=True, folds=10, repeats=5):
         self.sequential = sequential
         self.threshold = threshold
         self.timeM = time
@@ -36,6 +36,18 @@ class DispatcherCV:
 
         exeT = time.time() - start
 
+
+        return model_factory_params['Nqubits'], model_factory_params['model'], model_factory_params['Embedding'], model_factory_params['Ansatz'], model_factory_params['Max_features'], exeT, accuracy, b_accuracy, f1, custom, preds
+    
+    def execute_model_simulation(self, model_factory_params, X_train, y_train, X_test, y_test, predictions,  customMetric):
+        #model = ModelFactory().getModel(**model_factory_params)
+        preds = []
+        accuracy, b_accuracy, f1, custom = 0, 0, 0, 0
+        custom = None
+
+        start = time.time()
+        print(f"Executing: { model_factory_params['Nqubits']}, {model_factory_params['model']}, {model_factory_params['Embedding']}, {model_factory_params['Ansatz']}, {model_factory_params['Max_features']}")
+        exeT = time.time() - start
 
         return model_factory_params['Nqubits'], model_factory_params['model'], model_factory_params['Embedding'], model_factory_params['Ansatz'], model_factory_params['Max_features'], exeT, accuracy, b_accuracy, f1, custom, preds
 
@@ -64,12 +76,15 @@ class DispatcherCV:
         available_memory = calculate_free_memory()
         quantum_memory = calculate_quantum_memory(num_qubits=max(nqubits))
         max_models_parallel = min(int(available_memory // quantum_memory) if quantum_memory > 0 else float('inf'), psutil.cpu_count(logical=False))
+        print(max_models_parallel)
 
-        for combination in combinations:
-            print(combination)
+        # for combination in combinations:
+        #     print(combination)
 
         # Prepare all model executions
         all_executions = []
+        cpu_queue = []
+        gpu_queue = []
         for combination in combinations:
             qubits, name, embedding, ansatz, feature, repeat, fold = combination
             feature = feature if feature is not None else "~"
@@ -113,14 +128,25 @@ class DispatcherCV:
             # print(f"XTEST PROCESSED SHAPE: {X_test_processed.shape}")
             # print(f"XTrain PROCESSED SHAPE: {X_train_processed.shape}")
 
-
-            all_executions.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, customMetric))
+            
+            #all_executions.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, customMetric))
+            
+            if name == Model.QNN and qubits>=self.threshold:
+                gpu_queue.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, customMetric))
+            else:
+                cpu_queue.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, customMetric))
+        
         if self.timeM:
             print(f"PREPROCESSING TIME: {time.time()-t_pre}")
         # Execute all models in parallel
         t_exe = time.time()
         if self.sequential:
-            results = [self.execute_model(*execution_params) for execution_params in all_executions]
+            print(f"CPU QUEUE:")
+            results_cpu = [self.execute_model_simulation(*execution_params) for execution_params in cpu_queue]
+            
+            print(f"GPU QUEUE:")
+            results_gpu = [self.execute_model_simulation(*execution_params) for execution_params in gpu_queue]
+            
         else:
             if auto:
                 results = Parallel(n_jobs=cores, prefer='processes',batch_size='auto',verbose=10)(
@@ -135,9 +161,9 @@ class DispatcherCV:
         # Process results
         t_res = time.time()
         scores = pd.DataFrame(results, columns=["Qubits","Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"])
-        if showTable:
-            print(scores.to_markdown())
+        # if showTable:
+        #     print(scores.to_markdown())
 
-        if self.timeM:
-            print(f"RESULTS TIME: {time.time()-t_res}")
-        return scores
+        # if self.timeM:
+        #     print(f"RESULTS TIME: {time.time()-t_res}")
+        # return scores
