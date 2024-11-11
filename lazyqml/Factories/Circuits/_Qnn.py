@@ -1,4 +1,4 @@
-from Interfaces.iCircuit import Circuit
+from lazyqml.Interfaces.iCircuit import Circuit
 from Circuits.fCircuits import *
 
 class QnnCircuit(Circuit):

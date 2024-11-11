@@ -1,5 +1,5 @@
-from Interfaces.iCircuit import Circuit
-from Circuits.fCircuits import *
+from lazyqml.Interfaces.iCircuit import Circuit
+from lazyqml.Factories.Circuits.fCircuits import *
 import pennylane as qml
 
 class QkernelCircuit(Circuit):
