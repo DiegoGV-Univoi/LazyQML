@@ -1,12 +1,12 @@
 # Importing Enums
-from Global.globalEnums import *
+from lazyqml.Global.globalEnums import *
 
 # Importing Preprocessings
-from Factories.Preprocessing.Pca import *
+from lazyqml.Factories.Preprocessing.Pca import *
 # from Factories.Preprocessing.PcaAmp import *
 # from Factories.Preprocessing.PcaTree import *
 # from Factories.Preprocessing.PcaTreeAmp import *
-from Factories.Preprocessing.Sanitizer import *
+from lazyqml.Factories.Preprocessing.Sanitizer import *
 
 
 class PreprocessingFactory:

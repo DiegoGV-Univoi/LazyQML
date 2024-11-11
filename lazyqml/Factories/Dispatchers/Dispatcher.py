@@ -1,9 +1,9 @@
-from Utils.Utils import *
+from lazyqml.Utils.Utils import *
 import numpy as np
 import pandas as pd
 import math
-from Factories.Models.fModels import *
-from Factories.Preprocessing.fPreprocessing import *
+from lazyqml.Factories.Models.fModels import *
+from lazyqml.Factories.Preprocessing.fPreprocessing import *
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
 import time
 from joblib import Parallel, delayed

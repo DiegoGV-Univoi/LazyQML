@@ -1,4 +1,4 @@
-from Interfaces.iAnsatz import Ansatz
+from lazyqml.Interfaces.iAnsatz import Ansatz
 import pennylane as qml
 
 class HCzRx(Ansatz):

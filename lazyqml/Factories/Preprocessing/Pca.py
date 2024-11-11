@@ -1,4 +1,4 @@
-from Interfaces.iPreprocessing import Preprocessing
+from lazyqml.Interfaces.iPreprocessing import Preprocessing
 from sklearn.decomposition import PCA
 from sklearn.exceptions import NotFittedError
 

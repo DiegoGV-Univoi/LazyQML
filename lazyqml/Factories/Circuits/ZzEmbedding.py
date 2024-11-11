@@ -1,4 +1,4 @@
-from Interfaces.iCircuit import Circuit
+from lazyqml.Interfaces.iCircuit import Circuit
 import pennylane as qml
 import numpy as np
 from itertools import combinations

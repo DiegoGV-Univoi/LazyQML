@@ -1,4 +1,4 @@
-from Interfaces.iModel import Model
+from lazyqml.Interfaces.iModel import Model
 import numpy as np
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
@@ -6,8 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 import pennylane as qml
 from time import time
-from Factories.Circuits.fCircuits import CircuitFactory
-from Utils.Utils import printer
+from lazyqml.Factories.Circuits.fCircuits import CircuitFactory
+from lazyqml.Utils.Utils import printer
 
 class QSVM(Model):
     def __init__(self, nqubits, embedding, backend, shots, seed=1234):
