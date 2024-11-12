@@ -16,7 +16,9 @@ class DispatcherCV:
         self.timeM = time
         self.fold = folds
         self.repeat = repeats
-
+    """
+    Auxiliary function that executes the model and returns the performance metrics
+    """
     def execute_model(self, model_factory_params, X_train, y_train, X_test, y_test, predictions,  customMetric):
         model = ModelFactory().getModel(**model_factory_params)
         preds = []
