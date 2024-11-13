@@ -199,7 +199,7 @@ class QuantumClassifier(BaseModel):
 
         return preprocessor
 
-    def fit(self, X_train, y_train, X_test, y_test,showTable=True):
+    def fit(self, X_train, y_train, X_test, y_test, showTable=True, pmethod=True):
 
 
         printer.set_verbose(verbose=self.verbose)
@@ -217,7 +217,7 @@ class QuantumClassifier(BaseModel):
         d = Dispatcher(sequential=self.sequential,threshold=self.threshold)
         d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch)
 
-    def repeated_cross_validation(self, X, y, n_splits=10, n_repeats=5, showTable=True):
+    def repeated_cross_validation(self, X, y, n_splits=10, n_repeats=5, showTable=True, pmethod=True):
         printer.set_verbose(verbose=self.verbose)
         # Validation model to ensure input parameters are DataFrames and sizes match
         FitParamsValidatorCV(
@@ -228,21 +228,32 @@ class QuantumClassifier(BaseModel):
 
         # Fix seed
         fixSeed(self.randomstate)
-        d = DispatcherCV(sequential=self.sequential,threshold=self.threshold,repeats=n_repeats,folds=n_splits)
+        d = DispatcherCV(sequential=self.sequential,threshold=self.threshold,repeats=n_repeats,folds=n_splits, pmethod=pmethod)
         d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat,X_train=X ,X_test=X,y_test=y,y_train=y,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch,cores=self.cores)
 
     def leave_one_out(self, X, y, showTable=True):
         pass
 
+
 if __name__ == '__main__':
-    Batch_auto = True
-    Sequential = sys.argv[1].lower() == 'true'
-    Node = sys.argv[2].lower()
+    batch_auto = True
+    sequential = sys.argv[1].lower() == 'true'
+    node = sys.argv[2].lower()
     qubits = int(sys.argv[3])
     cores = int(sys.argv[4])
+    pmethod = sys.argv[5].lower() == 'true'
 
+
+    # python lazyqml.py slave? 8 16
+
+
+    print(f'Metodo de paralelismo: {"Multiprocessing" if pmethod else "joblib"}')
 
     from sklearn.datasets import load_iris
+
+    import torch
+    torch.set_num_threads(1)
+    torch.set_num_interop_threads(1)
 
     dataset="iris"
 
@@ -252,21 +263,52 @@ if __name__ == '__main__':
     y = data.target
 
 
-    if Node == "slave1":
+    if node == "slave1":
         repeats = 4
         embeddings = {Embedding.AMP}
-    elif Node == "slave2":
+    elif node == "slave2":
         repeats = 4
         embeddings = {Embedding.ZZ}
-    elif Node == "slave5":
+    elif node == "slave5" or node == "slave4":
         repeats = 2
         embeddings = {Embedding.ZZ}
 
-    print(f"PARAMETERS\nEmbeddings: {embeddings}\tBatch Auto: {Batch_auto}\tSequential: {Sequential}\tNode: {Node}\tDataset: {dataset}\tQubits: {qubits}\t Folds\\Repeats: {(8,repeats)}\tCores: {cores}")
+    embeddings = {Embedding.RX}
+    ansatzs = {Ansatzs.HARDWARE_EFFICIENT}
 
-    classifier = QuantumClassifier(nqubits={qubits},classifiers={Model.QSVM},embeddings=embeddings,features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto,cores=cores)
+    qc_parameters = {
+        "sequential": sequential,
+        "slave": node,
+        "dataset": dataset,
+        "qubits": qubits,
+        "classifiers": {Model.QNN},
+        "embeddings": embeddings,
+        "ansatzs": ansatzs,
+        "cores": cores,
+        "batch": batch_auto,
+        "epochs": 10,
+        "backend": Backend.lightningQubit,
+        "verbose": False
+    }
+
+    cv_parameters = {
+        "X": X,
+        "y": y,
+        "n_repeats": repeats,
+        "n_splits": 8,
+        "pmethod": pmethod
+    }
+
+    all_parameters = {}
+    all_parameters.update(qc_parameters)
+    all_parameters.update(cv_parameters)
+
+    print(f"PARAMETERS\nEmbeddings: {embeddings}\nBatch Auto: {batch_auto}\nSequential: {sequential}\nNode: {node}\nDataset: {dataset}\nQubits: {qubits}\n Folds\\Repeats: {(8,repeats)}\nCores: {cores}")
+
+    classifier = QuantumClassifier(nqubits={qubits},classifiers={Model.QSVM},embeddings=embeddings, ansatzs=ansatzs,features={1.0},verbose=False,sequential=sequential,backend=Backend.lightningQubit,batch=batch_auto,cores=cores, epochs=10)
 
     start = time.time()
-    classifier.repeated_cross_validation(X,y,n_repeats=repeats,n_splits=8)
-    print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not Sequential}")
+    classifier.repeated_cross_validation(X,y,n_repeats=repeats,n_splits=8,pmethod=pmethod)
+    # classifier.fit(X, y, X, y)
+    print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not sequential}")
 

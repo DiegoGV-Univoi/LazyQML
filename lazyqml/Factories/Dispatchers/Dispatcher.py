@@ -7,11 +7,13 @@ from Factories.Preprocessing.fPreprocessing import *
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
 import time
 from joblib import Parallel, delayed
+import multiprocessing
 
 class Dispatcher:
-    def __init__(self, sequential=False, threshold=27, time=True):
+    def __init__(self, sequential=False, threshold=27, time=True, pmethod=True):
         self.sequential = sequential
         self.threshold = threshold
+        self.pmethod = pmethod
         self.timeM = time
 
     def execute_model(self, model_factory_params, X_train, y_train, X_test, y_test, predictions, runs, customMetric):
@@ -121,20 +123,27 @@ class Dispatcher:
         if self.timeM:
             print(f"PREPROCESSING TIME: {time.time()-t_pre}")
         # Execute all models in parallel
+
+        pool    = multiprocessing.Pool(processes=max_models_parallel)
+        # modelos = pool.starmap(train_model, [(X, y, n_estimators) for n_estimators in list_n_estimators])
+
+        # Execute all models in parallel
         t_exe = time.time()
         if self.sequential:
             results = [self.execute_model(*execution_params) for execution_params in all_executions]
         else:
-            if auto:
-                results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
-                    delayed(self.execute_model)(*execution_params) for execution_params in all_executions
-                )
+            if self.pmethod:
+                results = pool.starmap(self.execute_model, all_executions)
+                # results = pool.starmap_async(self.execute_model, all_executions).get()
             else:
-                results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size=1,verbose=10)(
-                    delayed(self.execute_model)(*execution_params) for execution_params in all_executions
-                )
-        if self.timeM:
+                if auto:
+                    results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
+                        delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
+                else:
+                    results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size=1,verbose=10)(
+                        delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
             print(f"EXECUTING TIME: {time.time()-t_exe}")
+
         # Process results
         t_res = time.time()
         scores = pd.DataFrame(results, columns=["Qubits","Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"])
