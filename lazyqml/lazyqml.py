@@ -99,7 +99,7 @@ class QuantumClassifier(BaseModel):
     shots: Annotated[int, Field(gt=0)] = 1
     runs: Annotated[int, Field(gt=0)] = 1
     batchSize: Annotated[int, Field(gt=0)] = 8
-    threshold: Annotated[int, Field(gt=0)] = 26
+    threshold: Annotated[int, Field(gt=0)] = 22
     maxSamples: Annotated[float, Field(gt=0, le=1)] = 1.0
     verbose: bool = False
     customMetric: Optional[Callable] = None
@@ -214,7 +214,7 @@ class QuantumClassifier(BaseModel):
 
         # Fix seed
         fixSeed(self.randomstate)
-        d = Dispatcher(sequential=self.sequential,threshold=self.threshold)
+        d = DispatcherCV(sequential=self.sequential,threshold=self.threshold,repeats=1, folds=1)
         d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch)
 
     def repeated_cross_validation(self, X, y, n_splits=10, n_repeats=5, showTable=True):
@@ -236,10 +236,10 @@ class QuantumClassifier(BaseModel):
 
 if __name__ == '__main__':
     Batch_auto = True
-    Sequential = sys.argv[1].lower() == 'true'
-    Node = sys.argv[2].lower()
-    qubits = int(sys.argv[3])
-    cores = int(sys.argv[4])
+    Sequential = False
+    Node = "slave4"
+    qubits = 4
+    cores = 6
 
 
     from sklearn.datasets import load_iris
@@ -252,21 +252,15 @@ if __name__ == '__main__':
     y = data.target
 
 
-    if Node == "slave1":
-        repeats = 4
-        embeddings = {Embedding.AMP}
-    elif Node == "slave2":
-        repeats = 4
-        embeddings = {Embedding.ZZ}
-    elif Node == "slave5":
-        repeats = 2
-        embeddings = {Embedding.ZZ}
+
+    repeats = 2
+    embeddings = {Embedding.ZZ}
 
     print(f"PARAMETERS\nEmbeddings: {embeddings}\tBatch Auto: {Batch_auto}\tSequential: {Sequential}\tNode: {Node}\tDataset: {dataset}\tQubits: {qubits}\t Folds\\Repeats: {(8,repeats)}\tCores: {cores}")
 
-    classifier = QuantumClassifier(nqubits={qubits},classifiers={Model.QSVM},embeddings=embeddings,features={1.0},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto,cores=cores)
+    classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QNN,Model.QSVM},embeddings={Embedding.RX,Embedding.RY,Embedding.RZ},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,batch=Batch_auto,cores=cores,threshold=3,epochs=5)
 
     start = time.time()
-    classifier.repeated_cross_validation(X,y,n_repeats=repeats,n_splits=8)
+    classifier.repeated_cross_validation(X,y,n_repeats=repeats,n_splits=1)
     print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not Sequential}")
 

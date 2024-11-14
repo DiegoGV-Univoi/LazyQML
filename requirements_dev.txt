@@ -73,3 +73,4 @@ ucimlrepo
 pydantic
 psutil
 pandas
+gpu_queue

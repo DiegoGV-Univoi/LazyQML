@@ -64,3 +64,4 @@ pydantic
 psutil
 pandas
 joblib
+gputil

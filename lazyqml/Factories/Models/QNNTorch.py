@@ -30,7 +30,6 @@ class QNNTorch(Model):
         self.params = None
         self._build_circuit()
 
-
         # Suppress all warnings
         warnings.filterwarnings("ignore")
 
@@ -79,7 +78,7 @@ class QNNTorch(Model):
     def fit(self, X, y):
         # Move the model to the appropriate device (GPU or CPU)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() and self.backend == Backend.lightningGPU else "cpu")
-
+        print(f"USING: {self.device} and {self.deviceQ}")
 
         # Convert training data to torch tensors and transfer to device
         X_train = torch.tensor(X, dtype=torch.float32).to(self.device)
