@@ -12,13 +12,12 @@ import multiprocessing
 # from lazyqml import pmethod
 
 class DispatcherCV:
-    def __init__(self, sequential=False, threshold=27, time=True, folds=10, repeats=5, pmethod=True):
+    def __init__(self, sequential=False, threshold=27, time=True, folds=10, repeats=5):
         self.sequential = sequential
         self.threshold = threshold
         self.timeM = time
         self.fold = folds
         self.repeat = repeats
-        self.pmethod = pmethod
 
     def execute_model(self, model_factory_params, X_train, y_train, X_test, y_test, predictions,  customMetric):
         model = ModelFactory().getModel(**model_factory_params)
@@ -129,16 +128,18 @@ class DispatcherCV:
         if self.sequential:
             results = [self.execute_model(*execution_params) for execution_params in all_executions]
         else:
-            if self.pmethod:
-                results = pool.starmap(self.execute_model, all_executions)
-                # results = pool.starmap_async(self.execute_model, all_executions).get()
-            else:
-                if auto:
-                    results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
-                        delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
-                else:
-                    results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size=1,verbose=10)(
-                        delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
+            results = pool.starmap(self.execute_model, all_executions)
+
+            # if self.pmethod:
+            #     results = pool.starmap(self.execute_model, all_executions)
+            #     # results = pool.starmap_async(self.execute_model, all_executions).get()
+            # else:
+            #     if auto:
+            #         results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
+            #             delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
+            #     else:
+            #         results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size=1,verbose=10)(
+            #             delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
         if self.timeM:
             print(f"EXECUTING TIME: {time.time()-t_exe}")
 

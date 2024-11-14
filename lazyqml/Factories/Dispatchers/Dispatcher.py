@@ -10,10 +10,9 @@ from joblib import Parallel, delayed
 import multiprocessing
 
 class Dispatcher:
-    def __init__(self, sequential=False, threshold=27, time=True, pmethod=True):
+    def __init__(self, sequential=False, threshold=27, time=True):
         self.sequential = sequential
         self.threshold = threshold
-        self.pmethod = pmethod
         self.timeM = time
 
     def execute_model(self, model_factory_params, X_train, y_train, X_test, y_test, predictions, runs, customMetric):
@@ -132,17 +131,19 @@ class Dispatcher:
         if self.sequential:
             results = [self.execute_model(*execution_params) for execution_params in all_executions]
         else:
-            if self.pmethod:
-                results = pool.starmap(self.execute_model, all_executions)
-                # results = pool.starmap_async(self.execute_model, all_executions).get()
-            else:
-                if auto:
-                    results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
-                        delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
-                else:
-                    results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size=1,verbose=10)(
-                        delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
-            print(f"EXECUTING TIME: {time.time()-t_exe}")
+            results = pool.starmap(self.execute_model, all_executions)
+
+            # if self.pmethod:
+            #     results = pool.starmap(self.execute_model, all_executions)
+            #     # results = pool.starmap_async(self.execute_model, all_executions).get()
+            # else:
+            #     if auto:
+            #         results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
+            #             delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
+            #     else:
+            #         results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size=1,verbose=10)(
+            #             delayed(self.execute_model)(*execution_params) for execution_params in all_executions)
+        print(f"EXECUTING TIME: {time.time()-t_exe}")
 
         # Process results
         t_res = time.time()
