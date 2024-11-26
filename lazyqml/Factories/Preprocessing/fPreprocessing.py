@@ -1,13 +1,7 @@
-# Importing Enums
+# Importing from
 from Global.globalEnums import *
-
-# Importing Preprocessings
 from Factories.Preprocessing.Pca import *
-# from Factories.Preprocessing.PcaAmp import *
-# from Factories.Preprocessing.PcaTree import *
-# from Factories.Preprocessing.PcaTreeAmp import *
 from Factories.Preprocessing.Sanitizer import *
-
 
 class PreprocessingFactory:
     def __init__(self, nqubits) -> None:
@@ -25,16 +19,3 @@ class PreprocessingFactory:
             return Pca(self.nqubits, 2**(self.nqubits.bit_length()-1))
         else:
             return Pca(self.nqubits, self.nqubits)
-
-        """
-        Deprecated
-
-        # if prep == Preprocessing.PCA:
-        #     return Pca(self.nqubits)
-        # elif prep == Preprocessing.PCA_AMP:
-        #     return PcaAmp(self.nqubits)
-        # elif prep == Preprocessing.PCA_TREE:
-        #     return PcaTree(self.nqubits)
-        # elif prep == Preprocessing.PCA_TREE_AMP:
-        #     return PcaTreeAmp(self.nqubits)
-        """
