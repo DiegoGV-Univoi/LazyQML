@@ -1,11 +1,8 @@
-from pydantic import BaseModel, ValidationError, field_validator , ConfigDict
-from typing import Callable
-import inspect
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import numpy as np
-from typing import Any
 import pandas as pd
+
+from pydantic import BaseModel, ConfigDict, field_validator 
+from typing import Any
 
 class FitParamsValidator(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)  # Allow arbitrary types like DataFrame and ndarray

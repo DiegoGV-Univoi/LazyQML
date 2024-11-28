@@ -1,6 +1,6 @@
+# Importing from
 from Interfaces.iPreprocessing import Preprocessing
 from sklearn.decomposition import PCA
-from sklearn.exceptions import NotFittedError
 
 class Pca(Preprocessing):
     def __init__(self, nqubits, ncomponents):

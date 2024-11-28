@@ -1,5 +1,7 @@
 """
-This file is devoted to define the global enums for easening the interface.
+------------------------------------------------------------------------------------------------------------------
+    This file is devoted to define the global enums for easening the interface.
+------------------------------------------------------------------------------------------------------------------
 """
 
 from enum import Enum

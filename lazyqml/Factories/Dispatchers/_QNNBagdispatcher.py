@@ -1,2 +1,0 @@
-def executeQNNBag(combinations):
-    pass

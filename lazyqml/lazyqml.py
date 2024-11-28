@@ -1,3 +1,5 @@
+import inspect
+import warnings
 import numpy as np
 import pandas as pd
 import sys
@@ -10,7 +12,6 @@ from Factories.Preprocessing.fPreprocessing import PreprocessingFactory
 from Global.globalEnums import *
 from Utils.Utils import *
 from Utils.Validator import *
-from Factories.Dispatchers.DispatcherCV import *
 from Factories.Dispatchers.Dispatcher import *
 
 
@@ -19,6 +20,7 @@ from Factories.Dispatchers.Dispatcher import *
 from sklearn.impute import SimpleImputer
 from ucimlrepo import fetch_ucirepo
 from sklearn.preprocessing import LabelEncoder
+from time import time
 
 class QuantumClassifier(BaseModel):
     """
@@ -103,13 +105,12 @@ class QuantumClassifier(BaseModel):
     shots: Annotated[int, Field(gt=0)] = 1
     runs: Annotated[int, Field(gt=0)] = 1
     batchSize: Annotated[int, Field(gt=0)] = 8
-    threshold: Annotated[int, Field(gt=0)] = 26
+    threshold: Annotated[int, Field(gt=0)] = 22
     maxSamples: Annotated[float, Field(gt=0, le=1)] = 1.0
     verbose: bool = False
     customMetric: Optional[Callable] = None
     customImputerNum: Optional[Any] = None
     customImputerCat: Optional[Any] = None
-    batch: Optional[bool] = True
     cores: Optional[int] = True
 
     @field_validator('nqubits', mode='before')
@@ -203,25 +204,11 @@ class QuantumClassifier(BaseModel):
 
         return preprocessor
 
-    def fit(self, X_train, y_train, X_test, y_test,showTable=True):
-
-
-        printer.set_verbose(verbose=self.verbose)
-        # Validation model to ensure input parameters are DataFrames and sizes match
-        FitParamsValidator(
-            train_x=X_train,
-            train_y=y_train,
-            test_x=X_test,
-            test_y=y_test
-        )
-        printer.print("Validation successful, fitting the model...")
-
-        # Fix seed
-        fixSeed(self.randomstate)
-        d = Dispatcher(sequential=self.sequential,threshold=self.threshold)
-        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X_train=X_train,y_train=y_train, X_test=X_test, y_test=y_test,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch)
-
-    def repeated_cross_validation(self, X, y, n_splits=10, n_repeats=5, showTable=True):
+    def fit(self, X, y, test_size=0.4, showTable=True):
+        """
+        
+        """
+        warnings.filterwarnings("ignore")
         printer.set_verbose(verbose=self.verbose)
         # Validation model to ensure input parameters are DataFrames and sizes match
         FitParamsValidatorCV(
@@ -232,29 +219,69 @@ class QuantumClassifier(BaseModel):
 
         # Fix seed
         fixSeed(self.randomstate)
-        d = DispatcherCV(sequential=self.sequential,threshold=self.threshold,repeats=n_repeats,folds=n_splits)
-        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat,X_train=X ,X_test=X,y_test=y,y_train=y,shots=self.shots,showTable=showTable,batch=self.batchSize,auto=self.batch,cores=self.cores)
+        d = Dispatcher(sequential=self.sequential,threshold=self.threshold,repeats=1, folds=1)
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat, X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="holdout",testsize=test_size)
+
+    def repeated_cross_validation(self, X, y, n_splits=10, n_repeats=5, showTable=True):
+        """
+        
+        """
+        warnings.filterwarnings("ignore")
+        printer.set_verbose(verbose=self.verbose)
+        # Validation model to ensure input parameters are DataFrames and sizes match
+        FitParamsValidatorCV(
+            x=X,
+            y=y
+        )
+        printer.print("Validation successful, fitting the model...")
+
+        # Fix seed
+        fixSeed(self.randomstate)
+        d = Dispatcher(sequential=self.sequential,threshold=self.threshold,repeats=n_repeats,folds=n_splits)
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat,X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="cross-validation")
 
     def leave_one_out(self, X, y, showTable=True):
-        pass
+        """
+        
+        """
+        warnings.filterwarnings("ignore")
+        printer.set_verbose(verbose=self.verbose)
+        # Validation model to ensure input parameters are DataFrames and sizes match
+        FitParamsValidatorCV(
+            x=X,
+            y=y
+        )
+        printer.print("Validation successful, fitting the model...")
+        
+        # Fix seed 
+        fixSeed(self.randomstate)
+        d = Dispatcher(sequential=self.sequential,threshold=self.threshold,folds=len(X),repeats=1)
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat,X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="leave-one-out")
+
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     
     Batch_auto = True
     Sequential = 'true'
     qubits = 26
     cores = 4
 
+=======
+    Sequential = False
+    Node = "slave4"
+    qubits = 4
+    cores = 6
+>>>>>>> experimental
 
     from sklearn.datasets import load_iris
-
-    dataset="iris"
 
     # Load data
     data = load_iris()
     X = data.data
     y = data.target
 
+<<<<<<< HEAD
     X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.4,random_state =1234)
     classifier = QuantumClassifier(nqubits={qubits},classifiers={Model.ALL},embeddings={Embedding.ALL},features={0.5},verbose=True,sequential=True,backend=Backend.lightningQubit,batch=Batch_auto,cores=cores)
 
@@ -263,3 +290,14 @@ if __name__ == '__main__':
     classifier.fit(X_train, y_train, X_test, y_test)
     print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not Sequential}")
 
+=======
+    repeats = 2
+    embeddings = {Embedding.ZZ}
+
+    classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QSVM,Model.QNN},embeddings={Embedding.RX,Embedding.RY,Embedding.RZ},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,cores=cores,threshold=22,epochs=5)
+    
+    start = time()
+    
+    classifier.repeated_cross_validation(X,y,n_splits=2,n_repeats=1)
+    print(f"TOTAL TIME: {time()-start}s\t PARALLEL: {not Sequential}")
+>>>>>>> experimental

@@ -9,6 +9,7 @@ from Factories.Circuits.fCircuits import *
 from Global.globalEnums import Backend
 from Utils.Utils import printer
 import warnings
+
 class QNNTorch(Model):
     def __init__(self, nqubits, backend, ansatz, embedding, n_class, layers, epochs, shots, lr, batch_size, seed=1234) -> None:
         super().__init__()
@@ -29,7 +30,6 @@ class QNNTorch(Model):
         self.qnn = None
         self.params = None
         self._build_circuit()
-
 
         # Suppress all warnings
         warnings.filterwarnings("ignore")
@@ -79,7 +79,7 @@ class QNNTorch(Model):
     def fit(self, X, y):
         # Move the model to the appropriate device (GPU or CPU)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() and self.backend == Backend.lightningGPU else "cpu")
-
+        # print(f"USING: {self.device} and {self.deviceQ}")
 
         # Convert training data to torch tensors and transfer to device
         X_train = torch.tensor(X, dtype=torch.float32).to(self.device)
