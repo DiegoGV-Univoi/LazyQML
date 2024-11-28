@@ -217,13 +217,6 @@ class Dispatcher:
         X = pd.DataFrame(X)
 
         # Prepare all model executions
-<<<<<<< HEAD
-        all_executions=[]
-        cpu_queue = []
-        gpu_queue = []
-
-=======
->>>>>>> experimental
         for combination in combinations:
             qubits, name, embedding, ansatz, feature, repeat, fold, memModel = combination
             feature = feature if feature is not None else "~"
@@ -266,41 +259,6 @@ class Dispatcher:
                 "numPredictors": numPredictors
             }
 
-<<<<<<< HEAD
-            # print(f"XTrain PROCESSED SHAPE: {X_train_processed.shape}")
-
-
-            if name == Model.QNN and qubits>=self.threshold:
-                gpu_queue.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, customMetric))
-            else:
-                cpu_queue.append((model_factory_params, X_train_processed, y_train, X_test_processed, y_test, predictions, customMetric))
-
-        if self.timeM:
-            print(f"PREPROCESSING TIME: {time.time()-t_pre}")
-        # Execute all models in parallel
-        t_exe = time.time()
-        if self.sequential:
-            print(f"CPU QUEUE:")
-            results_cpu = [self.execute_model_simulation(*execution_params) for execution_params in cpu_queue]
-            
-            print(f"GPU QUEUE:")
-            results_gpu = [self.execute_model_simulation(*execution_params) for execution_params in gpu_queue]
-        else:
-            if auto:
-                results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size='auto',verbose=10)(
-                    delayed(self.execute_model)(*execution_params) for execution_params in all_executions
-                )
-            else:
-                results = Parallel(n_jobs=max_models_parallel, prefer='processes',batch_size=1,verbose=10)(
-                    delayed(self.execute_model)(*execution_params) for execution_params in all_executions
-                )
-        if self.timeM:
-            print(f"EXECUTING TIME: {time.time()-t_exe}")
-        # Process results
-        t_res = time.time()
-        
-        scores = pd.DataFrame(results_cpu, columns=["Qubits","Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"])
-=======
             # When adding items to queues
             if name == Model.QNN and qubits >= self.threshold and VRAM > calculate_quantum_memory(qubits):
                 model_factory_params["backend"] = Backend.lightningGPU
@@ -310,7 +268,6 @@ class Dispatcher:
                 model_factory_params["backend"] = Backend.lightningQubit
                 cpu_queue.put((combination,(model_factory_params, X_train_processed, y_train_processed, X_test_processed, y_test_processed, predictions, customMetric)))
                 cpu_items.append(combination)
->>>>>>> experimental
 
         if self.timeM:
             printer.print(f"PREPROCESSING TIME: {time()-t_pre}")

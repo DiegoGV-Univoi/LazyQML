@@ -260,19 +260,10 @@ class QuantumClassifier(BaseModel):
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    
-    Batch_auto = True
-    Sequential = 'true'
-    qubits = 26
-    cores = 4
-
-=======
     Sequential = False
     Node = "slave4"
     qubits = 4
     cores = 6
->>>>>>> experimental
 
     from sklearn.datasets import load_iris
 
@@ -281,16 +272,6 @@ if __name__ == '__main__':
     X = data.data
     y = data.target
 
-<<<<<<< HEAD
-    X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.4,random_state =1234)
-    classifier = QuantumClassifier(nqubits={qubits},classifiers={Model.ALL},embeddings={Embedding.ALL},features={0.5},verbose=True,sequential=True,backend=Backend.lightningQubit,batch=Batch_auto,cores=cores)
-
-    start = time.time()
-    #classifier.repeated_cross_validation(X, y, n_splits=5, n_repeats=2)
-    classifier.fit(X_train, y_train, X_test, y_test)
-    print(f"TOTAL TIME: {time.time()-start}s\t PARALLEL: {not Sequential}")
-
-=======
     repeats = 2
     embeddings = {Embedding.ZZ}
 
@@ -300,4 +281,3 @@ if __name__ == '__main__':
     
     classifier.repeated_cross_validation(X,y,n_splits=2,n_repeats=1)
     print(f"TOTAL TIME: {time()-start}s\t PARALLEL: {not Sequential}")
->>>>>>> experimental
