@@ -7,7 +7,7 @@ from Utils.Utils import printer
 
 
 class QKNN(Model):
-    def __init__(self, nqubits, embedding, backend, shots, seed=1234):
+    def __init__(self, nqubits, embedding, k, backend, shots, seed=1234):
         """
         Initialize the Quantum KNN model.
         Args:
@@ -15,8 +15,10 @@ class QKNN(Model):
             backend (str): Pennylane backend to use.
             shots (int): Number of shots for quantum measurements.
         """
+        super().__init__()
         self.nqubits = nqubits
         self.embedding = embedding
+        self.k = k
         self.shots = shots
         self.device = qml.device(backend.value, wires=nqubits, seed=seed)
         self.CircuitFactory = CircuitFactory(nqubits,nlayers=0)
@@ -52,7 +54,7 @@ class QKNN(Model):
         self.y_train = y
         self.q_distances = self._compute_distances
         printer.print("\t\tTraining the KNN...")
-        self.KNN = KNeighborsClassifier(n_neighbors=5, metric=self.q_distances)
+        self.KNN = KNeighborsClassifier(n_neighbors=self.k, metric=self.q_distances)
         self.KNN.fit(X, y)
 
     def predict(self, X):

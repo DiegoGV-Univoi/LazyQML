@@ -34,6 +34,7 @@ class Model(BaseEnum):
     QNN = 2
     QNN_BAG = 3
     QSVM = 4
+    QKNN = 5
 
 class Backend(Enum):
     defaultQubit = "default.qubit"
