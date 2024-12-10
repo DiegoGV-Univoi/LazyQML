@@ -74,7 +74,7 @@ class FitParamsValidatorCV(BaseModel):
 
         if size1 != size2:
             raise ValueError(f"{name1} and {name2} must have the same number of examples. "
-                             f"Got {size1} and {size2}.")
+                            f"Got {size1} and {size2}.")
 
     # Ensure inputs are valid DataFrames or NumPy arrays, and not empty/null
     @field_validator("x", "y")

@@ -271,7 +271,7 @@ if __name__ == '__main__':
     repeats = 2
     embeddings = {Embedding.ZZ}
 
-    classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QSVM,Model.QNN},embeddings={Embedding.RX,Embedding.RY,Embedding.RZ},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,cores=cores,threshold=22,epochs=5)
+    classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QSVM,Model.QNN},embeddings={Embedding.RX,Embedding.RY,Embedding.RZ},ansatzs={Ansatzs.HARDWARE_EFFICIENT},sequential=Sequential,backend=Backend.lightningQubit,cores=cores,threshold=22,epochs=5)
     
     start = time()
     
