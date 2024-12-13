@@ -7,7 +7,7 @@ from Utils.Utils import printer
 
 
 class QKNN(Model):
-    def __init__(self, nqubits, embedding, k, backend, shots, seed=1234):
+    def __init__(self, nqubits, embedding, backend, shots, k=5, seed=1234):
         """
         Initialize the Quantum KNN model.
         Args:
