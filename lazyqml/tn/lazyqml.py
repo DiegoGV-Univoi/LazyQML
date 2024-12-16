@@ -98,7 +98,7 @@ class QuantumClassifier(BaseModel):
     classifiers: Annotated[Set[Model], Field(min_items=1)] = {Model.ALL}
     ansatzs: Annotated[Set[Ansatzs], Field(min_items=1)] = {Ansatzs.ALL}
     embeddings: Annotated[Set[Embedding], Field(min_items=1)] = {Embedding.ALL}
-    backend: Backend = Backend.lightningQubit
+    backend: Backend = Backend.defaultTensor
     features: Annotated[Set[float], Field(min_items=1)] = {0.3, 0.5, 0.8}
     learningRate: Annotated[float, Field(gt=0)] = 0.01
     epochs: Annotated[int, Field(gt=0)] = 100
@@ -221,9 +221,9 @@ class QuantumClassifier(BaseModel):
         # Fix seed
         fixSeed(self.randomstate)
         d = Dispatcher(sequential=self.sequential,threshold=self.threshold,repeats=1, folds=1)
-        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum, mbonddim=self.max_bond_dimension, customImputerCat=self.customImputerCat, X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="holdout",testsize=test_size)
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum, max_bdim=self.max_bond_dimension, customImputerCat=self.customImputerCat, X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="holdout",testsize=test_size)
 
-    def repeated_cross_validation(self, X, y, n_splits=10, n_repeats=5, showTable=True):
+    def repeated_cross_validation(self, X, y, n_splits=2, n_repeats=2, showTable=True):
         """
         
         """
@@ -239,7 +239,7 @@ class QuantumClassifier(BaseModel):
         # Fix seed
         fixSeed(self.randomstate)
         d = Dispatcher(sequential=self.sequential,threshold=self.threshold,repeats=n_repeats,folds=n_splits)
-        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum, mbonddim=self.max_bond_dimension, customImputerCat=self.customImputerCat,X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="cross-validation")
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum, max_bdim=self.max_bond_dimension, customImputerCat=self.customImputerCat,X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="cross-validation")
 
     def leave_one_out(self, X, y, showTable=True):
         """
@@ -257,13 +257,13 @@ class QuantumClassifier(BaseModel):
         # Fix seed 
         fixSeed(self.randomstate)
         d = Dispatcher(sequential=self.sequential,threshold=self.threshold,folds=len(X),repeats=1)
-        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum, mbonddim=self.max_bond_dimension, customImputerCat=self.customImputerCat,X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="leave-one-out")
+        d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum, max_bdim=self.max_bond_dimension, customImputerCat=self.customImputerCat,X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="leave-one-out")
 
 
 if __name__ == '__main__':
     Sequential = False
     Node = "slave4"
-    qubits = 4
+    qubits = 8
     cores = 6
 
     from sklearn.datasets import load_iris
@@ -276,9 +276,10 @@ if __name__ == '__main__':
     repeats = 2
     embeddings = {Embedding.ZZ}
 
-    classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QSVM,Model.QNN},embeddings={Embedding.RX,Embedding.RY,Embedding.RZ},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,cores=cores,threshold=22,epochs=5)
+    classifier = QuantumClassifier(nqubits={qubits}, classifiers={Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.defaultTensor,cores=cores,threshold=9,epochs=1, max_bond_dimension=64)
     
     start = time()
     
-    classifier.repeated_cross_validation(X,y,n_splits=2,n_repeats=1)
+    # classifier.repeated_cross_validation(X,y, n_repeats=1, n_splits=2)
+    classifier.fit(X, y)
     print(f"TOTAL TIME: {time()-start}s\t PARALLEL: {not Sequential}")

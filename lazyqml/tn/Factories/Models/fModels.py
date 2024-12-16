@@ -10,7 +10,7 @@ class ModelFactory:
 
     def getModel(self, model, Nqubits, Embedding, Ansatz, N_class,  Layers=5, K=5, Shots=1,
                  Max_samples=1.0, Max_features=1.0, LearningRate=0.01, 
-                 BatchSize=8,  Epoch=50, seed=1234, backend=Backend.lightningQubit, numPredictors=10):
+                 BatchSize=8,  Epoch=50, seed=1234, backend=Backend.defaultTensor, numPredictors=10):
         
         if model == Model.QSVM:
             return QSVM(nqubits=Nqubits, embedding=Embedding, shots=Shots, seed=seed, backend=backend)

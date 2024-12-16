@@ -38,7 +38,7 @@ class QNNBag(Model):
             "cutoff_mode": "abs",
         }
         self.backend = backend
-        self.deviceQ = qml.device(backend.value, wires=nqubits, method='mps', **device_kwargs_mps_cpu) if backend != Backend.lightningGPU else qml.device(backend.value, wires=nqubits, method='mps', **device_kwargs_mps_gpu)
+        self.deviceQ = qml.device(backend.value, wires=nqubits, method='mps', **device_kwargs_mps_cpu) if backend != Backend.lightningTensor else qml.device(backend.value, wires=nqubits, method='mps', **device_kwargs_mps_gpu)
         self.device = None
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(self.nqubits, nlayers=layers)
@@ -61,7 +61,7 @@ class QNNBag(Model):
         self.params_per_layer = ansatz.getParameters()
 
         # Define the quantum circuit as a PennyLane qnode
-        @qml.qnode(self.deviceQ, interface='torch', diff_method='adjoint')
+        @qml.qnode(self.deviceQ, interface='torch')
         def circuit(x, theta):
             # Apply embedding and ansatz circuits
             embedding.getCircuit()(x, wires=range(self.nqubits))
@@ -82,7 +82,7 @@ class QNNBag(Model):
             return torch.stack([output for output in qnn_output]).T
 
     def fit(self, X, y):
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() and self.backend == Backend.lightningGPU else "cpu")
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() and self.backend == Backend.lightningTensor else "cpu")
 
         # Convert training data to torch tensors and transfer to device
         X = torch.tensor(X, dtype=torch.float32).to(self.device)

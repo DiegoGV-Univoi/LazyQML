@@ -65,7 +65,7 @@ def adjustQubits(nqubits, numClasses):
         nqubits *= 2
     return int(nqubits)
 
-def calculate_quantum_memory(num_qubits, max_bond_dim, overhead=2):
+def calculate_quantum_memory(num_qubits, overhead=2):
     """
         Estimates the memory in MiB used by the quantum circuits.
     """
@@ -74,7 +74,7 @@ def calculate_quantum_memory(num_qubits, max_bond_dim, overhead=2):
     bytes_per_qubit_state = 16
 
     # Number of possible states is 2^n, where n is the number of qubits
-    num_states =  num_qubits * (max_bond_dim ** 2)
+    num_states = 2 ** num_qubits
 
     # Total memory in bytes
     total_memory_bytes = num_states * bytes_per_qubit_state * overhead
@@ -145,6 +145,9 @@ def create_combinations(classifiers, embeddings, ansatzs, features, qubits, Fold
             elif classifier == Model.QNN_BAG:
                 # QNN_BAG uses ansatzs, features, and qubits
                 temp_combinations = list(product([qubits], [classifier], embedding_list, ansatzs_list, features, RepeatID, FoldID))
+            elif classifier == Model.QKNN:
+                # QSVM doesn't use ansatzs or features but uses qubits
+                temp_combinations = list(product([qubits], [classifier], embedding_list, [None], [None], RepeatID, FoldID))
             
             # Add memory calculation for each combination
             for combo in temp_combinations:

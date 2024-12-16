@@ -261,11 +261,11 @@ class QuantumClassifier(BaseModel):
 
 if __name__ == '__main__':
     Sequential = False
-    Node = "slave4"
+    Node = "slave1"
     qubits = 4
     cores = 6
 
-    from sklearn.datasets import load_iris
+    from sklearn.datasets import load_iris, load_breast_cancer
 
     # Load data
     data = load_iris()
@@ -273,11 +273,11 @@ if __name__ == '__main__':
     y = data.target
 
     repeats = 2
-    embeddings = {Embedding.ZZ}
+    
 
-    classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QSVM,Model.QNN},embeddings={Embedding.RX,Embedding.RY,Embedding.RZ},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,cores=cores,threshold=22,epochs=5)
+    classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,cores=cores,threshold=9,epochs=5, shots=10000)
     
     start = time()
     
-    classifier.repeated_cross_validation(X,y,n_splits=2,n_repeats=1)
+    classifier.fit(X,y)
     print(f"TOTAL TIME: {time()-start}s\t PARALLEL: {not Sequential}")

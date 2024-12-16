@@ -14,7 +14,8 @@ from Factories.Preprocessing.fPreprocessing import *
 from Utils.Utils import printer
     # External Libraries 
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
-from multiprocessing import Queue, Process, Pool, Manager
+from multiprocessing import Process, Pool, Manager
+from queue import Queue
 from statistics import mean
 from collections import defaultdict
 from time import time, sleep
@@ -64,12 +65,19 @@ class Dispatcher:
     def process_gpu_task(self, queue, results):
         torch.set_num_threads(1)
         torch.set_num_interop_threads(1)
+
+        printer.print("-> 3")
+        printer.print(str(queue))
         
         while not queue.empty():
             try:
-                item = queue.get_nowait()
+                try:
+                    item = queue.get_nowait()
 
-                results.append(self.execute_model(*item[1]))  # Store results if needed
+                    results.append(self.execute_model(*item[1]))  # Store results if needed
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
             except queue.Empty:
                 break
 
@@ -81,6 +89,8 @@ class Dispatcher:
         total_memory = calculate_free_memory()
         available_memory = total_memory
         available_cores = numProcs
+
+        printer.print("-> 4")
         
         # Lock para el acceso seguro a los recursos compartidos
         manager = Manager()
@@ -144,13 +154,15 @@ class Dispatcher:
                 sleep(0.1)
             
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 printer.print(f"Error in the batch: {str(e)}")
                 break
 
     def dispatch(self, nqubits, randomstate, predictions, shots,
                 numPredictors, numLayers, classifiers, ansatzs, backend,
-                embeddings, features, learningRate, epochs, runs, batch,
-                maxSamples, verbose, customMetric, customImputerNum, mbonddim,
+                embeddings, features, learningRate, epochs, runs, batch, max_bdim,
+                maxSamples, verbose, customMetric, customImputerNum,
                 customImputerCat, X, y, 
                 showTable=True, mode="cross-validation",testsize=0.4):
 
@@ -159,6 +171,8 @@ class Dispatcher:
         Preparing Data Structures & Initializing Variables
         ################################################################################
         """
+        printer.print("-> 12")
+
         # Replace the list-based queues with multiprocessing queues
         manager = Manager()
         gpu_queue = Queue()
@@ -167,6 +181,9 @@ class Dispatcher:
         # Also keep track of items for printing
         cpu_items = []
         gpu_items = []
+
+        printer.print(f"-> 10 {str(gpu_queue.qsize())}")
+        printer.print(f"-> 11 {str(cpu_queue.qsize())}")
 
         RAM = calculate_free_memory()
         VRAM = calculate_free_video_memory()
@@ -197,10 +214,13 @@ class Dispatcher:
                                         embeddings=embeddings,
                                         features=features,
                                         ansatzs=ansatzs,
+                                        max_bond_dim=max_bdim,
                                         RepeatID=[i for i in range(self.repeat)],
                                         FoldID=[i for i in range(self.fold)])
         cancelledQubits = set()
         to_remove = []
+
+        printer.print(str(combinations))
     
         for i, combination in enumerate(combinations):
             modelMem = combination[-1]
@@ -212,9 +232,12 @@ class Dispatcher:
             cancelledQubits.add(combination[0])
 
         for val in cancelledQubits:
-            printer.print(f"Execution with {val} Qubits are cancelled due to memory constrains -> Memory Required: {calculate_quantum_memory(val, mbonddim)/1024:.2f}GB Out of {calculate_free_memory()/1024:.2f}GB")
+            printer.print(f"Execution with {val} Qubits are cancelled due to memory constrains -> Memory Required: {calculate_quantum_memory(val, max_bdim)/1024:.2f}GB Out of {calculate_free_memory()/1024:.2f}GB")
 
         X = pd.DataFrame(X)
+
+        printer.print(str(combinations))
+
 
         # Prepare all model executions
         for combination in combinations:
@@ -260,13 +283,26 @@ class Dispatcher:
             }
 
             # When adding items to queues
-            if name == Model.QNN and qubits >= self.threshold and VRAM > calculate_quantum_memory(qubits, mbonddim):
+            if name == Model.QNN and qubits >= self.threshold and VRAM > calculate_quantum_memory(qubits, max_bdim):
+                printer.print("-> 1")
                 model_factory_params["backend"] = Backend.lightningTensor
+
+                printer.print(f"-> 13 - {str((combination,(model_factory_params, X_train_processed, y_train_processed, X_test_processed, y_test_processed, predictions, customMetric)))}")
+
                 gpu_queue.put((combination,(model_factory_params, X_train_processed, y_train_processed, X_test_processed, y_test_processed, predictions, customMetric)))
                 gpu_items.append(combination)
+
+                printer.print(f"-> 8 - {gpu_queue.empty()}")
+                printer.print(f"-> 9 - {str(gpu_items)}")
+
             else:
+                printer.print("-> 2")
                 model_factory_params["backend"] = Backend.defaultTensor
-                cpu_queue.put((combination,(model_factory_params, X_train_processed, y_train_processed, X_test_processed, y_test_processed, predictions, customMetric)))
+                try:
+                    cpu_queue.put((combination,(model_factory_params, X_train_processed, y_train_processed, X_test_processed, y_test_processed, predictions, customMetric)))
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                 cpu_items.append(combination)
 
         if self.timeM:
@@ -280,12 +316,17 @@ class Dispatcher:
         executionTime = time()
         gpu_process = None
         # Start GPU process
+        printer.print(f"-> 7 - {gpu_queue.empty()}")
         if not gpu_queue.empty():
             gpu_process = Process(target=self.process_gpu_task, args=(gpu_queue, results))
             gpu_process.start()
 
         # Start CPU processes
+        printer.print("-> 6")
+        printer.print(cpu_queue.empty())
+
         if not cpu_queue.empty():
+            printer.print("-> 5")
             self.process_cpu_task(cpu_queue, gpu_queue, results)
         
         # Wait for all processes to complete
@@ -307,6 +348,7 @@ class Dispatcher:
             key = result[:5]
             grouped_results[key].append(result)
 
+        printer.print(str(results))
         summary = []
         for key, group in grouped_results.items():
             time_taken = sum([r[5] for r in group])
@@ -314,7 +356,7 @@ class Dispatcher:
             balanced_accuracy = mean([r[7] for r in group])
             f1_score = mean([r[8] for r in group])
             if customMetric:
-                if mode == "hold-out":
+                if mode == "holdout":
                     cols = ["Qubits", "Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"]
                     summary.append((key[0], key[1], key[2], key[3], key[4], time_taken, accuracy, balanced_accuracy, f1_score, custom_metric, []))
                 else:
@@ -322,7 +364,7 @@ class Dispatcher:
                     custom_metric = mean([r[9] for r in group])
                     summary.append((key[0], key[1], key[2], key[3], key[4], time_taken, accuracy, balanced_accuracy, f1_score, custom_metric))
             else:
-                if mode == "hold-out":
+                if mode == "holdout":
                     cols = ["Qubits", "Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"]
                     summary.append((key[0], key[1], key[2], key[3], key[4], time_taken, accuracy, balanced_accuracy, f1_score, [], []))
                 else:

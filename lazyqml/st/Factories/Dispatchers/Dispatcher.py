@@ -14,7 +14,8 @@ from Factories.Preprocessing.fPreprocessing import *
 from Utils.Utils import printer
     # External Libraries 
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
-from multiprocessing import Queue, Process, Pool, Manager
+from multiprocessing import Process, Pool, Manager
+from queue import Queue
 from statistics import mean
 from collections import defaultdict
 from time import time, sleep
@@ -192,6 +193,7 @@ class Dispatcher:
         """
 
         t_pre = time()
+        
         combinations = create_combinations(qubits=nqubits,
                                         classifiers=classifiers,
                                         embeddings=embeddings,
@@ -220,7 +222,6 @@ class Dispatcher:
         for combination in combinations:
             qubits, name, embedding, ansatz, feature, repeat, fold, memModel = combination
             feature = feature if feature is not None else "~"
-
             # Get indices for this repeat/fold combination
             train_idx, test_idx = get_train_test_split(cv_indices, repeat, fold)
             
@@ -314,7 +315,7 @@ class Dispatcher:
             balanced_accuracy = mean([r[7] for r in group])
             f1_score = mean([r[8] for r in group])
             if customMetric:
-                if mode == "hold-out":
+                if mode == "holdout":
                     cols = ["Qubits", "Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"]
                     summary.append((key[0], key[1], key[2], key[3], key[4], time_taken, accuracy, balanced_accuracy, f1_score, custom_metric, []))
                 else:
@@ -322,7 +323,7 @@ class Dispatcher:
                     custom_metric = mean([r[9] for r in group])
                     summary.append((key[0], key[1], key[2], key[3], key[4], time_taken, accuracy, balanced_accuracy, f1_score, custom_metric))
             else:
-                if mode == "hold-out":
+                if mode == "holdout":
                     cols = ["Qubits", "Model", "Embedding", "Ansatz", "Features", "Time taken", "Accuracy", "Balanced Accuracy", "F1 Score", "Custom Metric", "Predictions"]
                     summary.append((key[0], key[1], key[2], key[3], key[4], time_taken, accuracy, balanced_accuracy, f1_score, [], []))
                 else:

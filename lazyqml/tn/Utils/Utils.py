@@ -65,7 +65,7 @@ def adjustQubits(nqubits, numClasses):
         nqubits *= 2
     return int(nqubits)
 
-def calculate_quantum_memory(num_qubits, overhead=2):
+def calculate_quantum_memory(num_qubits, max_bond_dim, overhead=2):
     """
         Estimates the memory in MiB used by the quantum circuits.
     """
@@ -74,7 +74,7 @@ def calculate_quantum_memory(num_qubits, overhead=2):
     bytes_per_qubit_state = 16
 
     # Number of possible states is 2^n, where n is the number of qubits
-    num_states = 2 ** num_qubits
+    num_states =  num_qubits * (max_bond_dim ** 2)
 
     # Total memory in bytes
     total_memory_bytes = num_states * bytes_per_qubit_state * overhead
@@ -100,7 +100,7 @@ def calculate_free_video_memory():
     return GPUtil.getGPUs()[0].memoryFree
 
 
-def create_combinations(classifiers, embeddings, ansatzs, features, qubits, FoldID, RepeatID):
+def create_combinations(classifiers, embeddings, ansatzs, features, qubits, max_bond_dim, FoldID, RepeatID):
     classifier_list = []
     embedding_list = []
     ansatzs_list = []
@@ -136,7 +136,7 @@ def create_combinations(classifiers, embeddings, ansatzs, features, qubits, Fold
     for qubits in qubit_values:
         for classifier in classifier_list:
             temp_combinations = []
-            if classifier == Model.QSVM:
+            if classifier == Model.QSVM or classifier == Model.QKNN:
                 # QSVM doesn't use ansatzs or features but uses qubits
                 temp_combinations = list(product([qubits], [classifier], embedding_list, [None], [None], RepeatID, FoldID))
             elif classifier == Model.QNN:
@@ -146,9 +146,10 @@ def create_combinations(classifiers, embeddings, ansatzs, features, qubits, Fold
                 # QNN_BAG uses ansatzs, features, and qubits
                 temp_combinations = list(product([qubits], [classifier], embedding_list, ansatzs_list, features, RepeatID, FoldID))
             
+            
             # Add memory calculation for each combination
             for combo in temp_combinations:
-                memory = calculate_quantum_memory(combo[0])  # Calculate memory based on number of qubits
+                memory = calculate_quantum_memory(combo[0], max_bond_dim=max_bond_dim)  # Calculate memory based on number of qubits
                 combinations.append(combo + (memory,))
     
     return combinations
