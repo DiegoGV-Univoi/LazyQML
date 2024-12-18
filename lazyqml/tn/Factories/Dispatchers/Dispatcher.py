@@ -65,19 +65,12 @@ class Dispatcher:
     def process_gpu_task(self, queue, results):
         torch.set_num_threads(1)
         torch.set_num_interop_threads(1)
-
-        printer.print("-> 3")
-        printer.print(str(queue))
         
         while not queue.empty():
             try:
-                try:
-                    item = queue.get_nowait()
+                item = queue.get_nowait()
 
-                    results.append(self.execute_model(*item[1]))  # Store results if needed
-                except Exception as e:
-                    import traceback
-                    traceback.print_exc()
+                results.append(self.execute_model(*item[1]))  # Store results if needed
             except queue.Empty:
                 break
 
@@ -89,8 +82,6 @@ class Dispatcher:
         total_memory = calculate_free_memory()
         available_memory = total_memory
         available_cores = numProcs
-
-        printer.print("-> 4")
         
         # Lock para el acceso seguro a los recursos compartidos
         manager = Manager()
@@ -154,8 +145,6 @@ class Dispatcher:
                 sleep(0.1)
             
             except Exception as e:
-                import traceback
-                traceback.print_exc()
                 printer.print(f"Error in the batch: {str(e)}")
                 break
 
@@ -171,7 +160,6 @@ class Dispatcher:
         Preparing Data Structures & Initializing Variables
         ################################################################################
         """
-        printer.print("-> 12")
 
         # Replace the list-based queues with multiprocessing queues
         manager = Manager()
@@ -181,9 +169,6 @@ class Dispatcher:
         # Also keep track of items for printing
         cpu_items = []
         gpu_items = []
-
-        printer.print(f"-> 10 {str(gpu_queue.qsize())}")
-        printer.print(f"-> 11 {str(cpu_queue.qsize())}")
 
         RAM = calculate_free_memory()
         VRAM = calculate_free_video_memory()
@@ -219,8 +204,6 @@ class Dispatcher:
                                         FoldID=[i for i in range(self.fold)])
         cancelledQubits = set()
         to_remove = []
-
-        printer.print(str(combinations))
     
         for i, combination in enumerate(combinations):
             modelMem = combination[-1]
@@ -235,9 +218,6 @@ class Dispatcher:
             printer.print(f"Execution with {val} Qubits are cancelled due to memory constrains -> Memory Required: {calculate_quantum_memory(val, max_bdim)/1024:.2f}GB Out of {calculate_free_memory()/1024:.2f}GB")
 
         X = pd.DataFrame(X)
-
-        printer.print(str(combinations))
-
 
         # Prepare all model executions
         for combination in combinations:
@@ -284,19 +264,12 @@ class Dispatcher:
 
             # When adding items to queues
             if name == Model.QNN and qubits >= self.threshold and VRAM > calculate_quantum_memory(qubits, max_bdim):
-                printer.print("-> 1")
                 model_factory_params["backend"] = Backend.lightningTensor
-
-                printer.print(f"-> 13 - {str((combination,(model_factory_params, X_train_processed, y_train_processed, X_test_processed, y_test_processed, predictions, customMetric)))}")
 
                 gpu_queue.put((combination,(model_factory_params, X_train_processed, y_train_processed, X_test_processed, y_test_processed, predictions, customMetric)))
                 gpu_items.append(combination)
 
-                printer.print(f"-> 8 - {gpu_queue.empty()}")
-                printer.print(f"-> 9 - {str(gpu_items)}")
-
             else:
-                printer.print("-> 2")
                 model_factory_params["backend"] = Backend.defaultTensor
                 try:
                     cpu_queue.put((combination,(model_factory_params, X_train_processed, y_train_processed, X_test_processed, y_test_processed, predictions, customMetric)))
@@ -315,18 +288,16 @@ class Dispatcher:
         """
         executionTime = time()
         gpu_process = None
+
         # Start GPU process
-        printer.print(f"-> 7 - {gpu_queue.empty()}")
         if not gpu_queue.empty():
+            printer.print(f"Starting GPU tasks")
             gpu_process = Process(target=self.process_gpu_task, args=(gpu_queue, results))
             gpu_process.start()
 
         # Start CPU processes
-        printer.print("-> 6")
-        printer.print(cpu_queue.empty())
-
         if not cpu_queue.empty():
-            printer.print("-> 5")
+            printer.print(f"Starting CPU tasks")
             self.process_cpu_task(cpu_queue, gpu_queue, results)
         
         # Wait for all processes to complete

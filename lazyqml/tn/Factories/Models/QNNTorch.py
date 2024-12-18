@@ -35,6 +35,7 @@ class QNNTorch(Model):
         }
         self.backend = backend
         self.deviceQ = qml.device(backend.value, wires=nqubits, method='mps', **device_kwargs_mps_cpu) if backend != Backend.lightningTensor else qml.device(backend.value, wires=nqubits, method='mps', **device_kwargs_mps_gpu)
+        #self.deviceQ = qml.device(backend.value, wires=nqubits) if backend != Backend.lightningTensor else qml.device(backend.value, wires=nqubits)
         self.device = None
         self.params_per_layer = None
         self.circuit_factory = CircuitFactory(nqubits,nlayers=layers)
@@ -90,7 +91,8 @@ class QNNTorch(Model):
     def fit(self, X, y):
         # Move the model to the appropriate device (GPU or CPU)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() and self.backend == Backend.lightningTensor else "cpu")
-        # print(f"USING: {self.device} and {self.deviceQ}")
+
+        printer.print(f"USING: {self.device} and {self.deviceQ}")
 
         # Convert training data to torch tensors and transfer to device
         X_train = torch.tensor(X, dtype=torch.float32).to(self.device)
@@ -117,6 +119,9 @@ class QNNTorch(Model):
 
         for epoch in range(self.epochs):
             epoch_loss = 0.0
+            printer.print(f"\nEpoch {epoch+1}/{self.epochs} - Training Started:")
+            batch_idx=0
+
             for batch_X, batch_y in data_loader:
                 self.opt.zero_grad()
 
@@ -130,6 +135,8 @@ class QNNTorch(Model):
                 # Optimization step
                 self.opt.step()
                 epoch_loss += loss.item()
+                printer.print(f"\tBatch {batch_idx+1}/{len(data_loader)} completed")
+                batch_idx +=1
 
             # Print the average loss for the epoch
             printer.print(f"\t\tEpoch {epoch+1}/{self.epochs}, Loss: {epoch_loss/len(data_loader):.4f}")

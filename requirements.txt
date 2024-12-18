@@ -58,7 +58,9 @@ scikit-learn
 PennyLane
 PennyLane_Lightning
 PennyLane_Lightning_GPU
+PennyLane_Lightning_Tensor
 custatevec_cu12
+cutensornet_cu12
 ucimlrepo 
 pydantic
 psutil

@@ -37,7 +37,7 @@ class VerbosePrinter:
 
     def print(self, message: str):
         if self.verbose:
-            print(f"[VERBOSE] {message}")
+            print(f"[VERBOSE] {message}", flush=True)
         else:
             pass
 
