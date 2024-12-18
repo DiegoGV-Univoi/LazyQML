@@ -59,6 +59,7 @@ PennyLane
 PennyLane_Lightning
 PennyLane_Lightning_GPU
 PennyLane_Lightning_Tensor
+quimb==1.8.3
 custatevec_cu12
 cutensornet_cu12
 ucimlrepo 

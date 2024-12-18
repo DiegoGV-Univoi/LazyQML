@@ -276,7 +276,7 @@ if __name__ == '__main__':
     repeats = 2
     embeddings = {Embedding.ZZ}
 
-    classifier = QuantumClassifier(nqubits={qubits}, classifiers={Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.defaultTensor,cores=cores,threshold=9,epochs=1, max_bond_dimension=64)
+    classifier = QuantumClassifier(nqubits={qubits}, classifiers={Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.defaultTensor,cores=cores,threshold=9,epochs=1, numLayers=1, max_bond_dimension=64)
     
     start = time()
     
