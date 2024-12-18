@@ -18,6 +18,7 @@ class Ansatzs(BaseEnum):
     TREE_TENSOR = 3
     TWO_LOCAL = 4
     HARDWARE_EFFICIENT = 5
+    ANNULAR = 6
 
 # Enum for selecting the Embedding circuits
 class Embedding(BaseEnum):
@@ -27,6 +28,8 @@ class Embedding(BaseEnum):
     RY = 4
     ZZ = 5
     AMP = 6
+    DENSE_ANGLE = 7
+    HIGHER_ORDER = 8
 
 # Enum for selecting the Models
 class Model(BaseEnum):

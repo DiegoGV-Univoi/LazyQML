@@ -14,7 +14,9 @@ class PreprocessingFactory:
         if embedding == Embedding.AMP and ansatz == Ansatzs.TREE_TENSOR:
             return Pca(self.nqubits, 2**(2**(self.nqubits.bit_length()-1)))
         elif embedding == Embedding.AMP:
-            return Pca(self.nqubits, 2**self.nqubits)
+            return Pca(self.nqubits, 2**self.nqubits)        
+        elif embedding == Embedding.DENSE_ANGLE:
+            return Pca(self.nqubits, 2*self.nqubits)
         elif ansatz == Ansatzs.TREE_TENSOR:
             return Pca(self.nqubits, 2**(self.nqubits.bit_length()-1))
         else:
