@@ -8,11 +8,11 @@ from pydantic import BaseModel, Field, model_validator, field_validator, Validat
 from pydantic.config import ConfigDict
 from typing import List, Callable, Optional, Set
 from typing_extensions import Annotated, Set
-from Factories.Preprocessing.fPreprocessing import PreprocessingFactory
-from Global.globalEnums import *
-from Utils.Utils import *
-from Utils.Validator import *
-from Factories.Dispatchers.Dispatcher import *
+from lazyqml.Factories.Preprocessing.fPreprocessing import PreprocessingFactory
+from lazyqml.Global.globalEnums import *
+from lazyqml.Utils.Utils import *
+from lazyqml.Utils.Validator import *
+from lazyqml.Factories.Dispatchers.Dispatcher import *
 
 
 

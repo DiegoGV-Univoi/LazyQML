@@ -1,9 +1,9 @@
-from Interfaces.iModel import Model
+from lazyqml.Interfaces.iModel import Model
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 import pennylane as qml
-from Factories.Circuits.fCircuits import CircuitFactory
-from Utils.Utils import printer
+from lazyqml.Factories.Circuits.fCircuits import CircuitFactory
+from lazyqml.Utils.Utils import printer
 
 
 class QKNN(Model):

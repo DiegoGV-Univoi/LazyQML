@@ -1,19 +1,19 @@
 # Importing Enums
-from Global.globalEnums import Ansatzs, Embedding
+from lazyqml.Global.globalEnums import Ansatzs, Embedding
 # Importing Ansatzs
-from Factories.Circuits.TwoLocal import *
-from Factories.Circuits.HardwareEfficient import *
-from Factories.Circuits.TreeTensor import *
-from Factories.Circuits.HCzRx import *
-from Factories.Circuits.Annular import *
+from lazyqml.Factories.Circuits.TwoLocal import *
+from lazyqml.Factories.Circuits.HardwareEfficient import *
+from lazyqml.Factories.Circuits.TreeTensor import *
+from lazyqml.Factories.Circuits.HCzRx import *
+from lazyqml.Factories.Circuits.Annular import *
 # Importing Embeddings
-from Factories.Circuits.RxEmbedding import *
-from Factories.Circuits.RyEmbedding import *
-from Factories.Circuits.RzEmbedding import *
-from Factories.Circuits.ZzEmbedding import *
-from Factories.Circuits.AmplitudeEmbedding import *
-from Factories.Circuits.DenseAngleEmbedding import *
-from Factories.Circuits.HigherOrderEmbedding import *
+from lazyqml.Factories.Circuits.RxEmbedding import *
+from lazyqml.Factories.Circuits.RyEmbedding import *
+from lazyqml.Factories.Circuits.RzEmbedding import *
+from lazyqml.Factories.Circuits.ZzEmbedding import *
+from lazyqml.Factories.Circuits.AmplitudeEmbedding import *
+from lazyqml.Factories.Circuits.DenseAngleEmbedding import *
+from lazyqml.Factories.Circuits.HigherOrderEmbedding import *
 
 
 class CircuitFactory:
