@@ -260,26 +260,26 @@ class QuantumClassifier(BaseModel):
         d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum, max_bdim=self.max_bond_dimension, customImputerCat=self.customImputerCat,X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="leave-one-out")
 
 
-if __name__ == '__main__':
-    Sequential = False
-    Node = "slave4"
-    qubits = 8
-    cores = 6
+# if __name__ == '__main__':
+#     Sequential = False
+#     Node = "slave4"
+#     qubits = 8
+#     cores = 6
 
-    from sklearn.datasets import load_iris
+#     from sklearn.datasets import load_iris
 
-    # Load data
-    data = load_iris()
-    X = data.data
-    y = data.target
+#     # Load data
+#     data = load_iris()
+#     X = data.data
+#     y = data.target
 
-    repeats = 2
-    embeddings = {Embedding.ZZ}
+#     repeats = 2
+#     embeddings = {Embedding.ZZ}
 
-    classifier = QuantumClassifier(nqubits={qubits}, classifiers={Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.defaultTensor,cores=cores,threshold=9,epochs=1, numLayers=1, max_bond_dimension=64)
+#     classifier = QuantumClassifier(nqubits={qubits}, classifiers={Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.defaultTensor,cores=cores,threshold=9,epochs=1, numLayers=1, max_bond_dimension=64)
     
-    start = time()
+#     start = time()
     
-    # classifier.repeated_cross_validation(X,y, n_repeats=1, n_splits=2)
-    classifier.fit(X, y)
-    print(f"TOTAL TIME: {time()-start}s\t PARALLEL: {not Sequential}")
+#     # classifier.repeated_cross_validation(X,y, n_repeats=1, n_splits=2)
+#     classifier.fit(X, y)
+#     print(f"TOTAL TIME: {time()-start}s\t PARALLEL: {not Sequential}")

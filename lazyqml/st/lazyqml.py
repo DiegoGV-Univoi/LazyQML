@@ -259,25 +259,25 @@ class QuantumClassifier(BaseModel):
         d.dispatch(nqubits=self.nqubits,randomstate=self.randomstate,predictions=self.predictions,numPredictors=self.numPredictors,numLayers=self.numLayers,classifiers=self.classifiers,ansatzs=self.ansatzs,backend=self.backend,embeddings=self.embeddings,features=self.features,learningRate=self.learningRate,epochs=self.epochs,runs=self.runs,maxSamples=self.maxSamples,verbose=self.verbose,customMetric=self.customMetric,customImputerNum=self.customImputerNum,customImputerCat=self.customImputerCat,X=X ,y=y,shots=self.shots,showTable=showTable,batch=self.batchSize,mode="leave-one-out")
 
 
-if __name__ == '__main__':
-    Sequential = False
-    Node = "slave1"
-    qubits = 4
-    cores = 6
+# if __name__ == '__main__':
+#     Sequential = False
+#     Node = "slave1"
+#     qubits = 4
+#     cores = 6
 
-    from sklearn.datasets import load_iris, load_breast_cancer
+#     from sklearn.datasets import load_iris, load_breast_cancer
 
-    # Load data
-    data = load_iris()
-    X = data.data
-    y = data.target
+#     # Load data
+#     data = load_iris()
+#     X = data.data
+#     y = data.target
 
-    repeats = 2
+#     repeats = 2
     
 
-    classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,cores=cores,threshold=9,epochs=5, shots=10000)
+#     classifier = QuantumClassifier(nqubits={4}, classifiers={Model.QNN},embeddings={Embedding.RX},ansatzs={Ansatzs.HARDWARE_EFFICIENT},verbose=True,sequential=Sequential,backend=Backend.lightningQubit,cores=cores,threshold=9,epochs=5, shots=10000)
     
-    start = time()
+#     start = time()
     
-    classifier.fit(X,y)
-    print(f"TOTAL TIME: {time()-start}s\t PARALLEL: {not Sequential}")
+#     classifier.fit(X,y)
+#     print(f"TOTAL TIME: {time()-start}s\t PARALLEL: {not Sequential}")
