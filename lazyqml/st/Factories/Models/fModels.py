@@ -1,8 +1,8 @@
-from lazyqml.Factories.Models.QSVM import *
-from lazyqml.Factories.Models.QNNBag import *
-from lazyqml.Factories.Models.QNNTorch import *
-from lazyqml.Factories.Models.QKNN import *
-from lazyqml.Global.globalEnums import *
+from lazyqml.st.Factories.Models.QSVM import *
+from lazyqml.st.Factories.Models.QNNBag import *
+from lazyqml.st.Factories.Models.QNNTorch import *
+from lazyqml.st.Factories.Models.QKNN import *
+from lazyqml.st.Global.globalEnums import *
 
 class ModelFactory:
     def __init__(self) -> None:

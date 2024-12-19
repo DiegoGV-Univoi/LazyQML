@@ -1,5 +1,5 @@
 # Importing from
-from lazyqml.Interfaces.iPreprocessing import Preprocessing
+from lazyqml.st.Interfaces.iPreprocessing import Preprocessing
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler

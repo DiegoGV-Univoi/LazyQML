@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from lazyqml.Interfaces.iCircuit import Circuit
+from lazyqml.st.Interfaces.iCircuit import Circuit
 
 class Ansatz(Circuit):
     @abstractmethod

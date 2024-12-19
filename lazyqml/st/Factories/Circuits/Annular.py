@@ -1,4 +1,4 @@
-from lazyqml.Interfaces.iAnsatz import Ansatz
+from lazyqml.st.Interfaces.iAnsatz import Ansatz
 import pennylane as qml
 import numpy as np
 

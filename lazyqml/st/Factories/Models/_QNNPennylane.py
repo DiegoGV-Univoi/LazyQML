@@ -1,7 +1,7 @@
-from lazyqml.Interfaces.iModel import Model
-from lazyqml.Interfaces.iAnsatz import Ansatz
-from lazyqml.Interfaces.iCircuit import Circuit
-from lazyqml.Factories.Circuits.fCircuits import *
+from lazyqml.st.Interfaces.iModel import Model
+from lazyqml.st.Interfaces.iAnsatz import Ansatz
+from lazyqml.st.Interfaces.iCircuit import Circuit
+from lazyqml.st.Factories.Circuits.fCircuits import *
 
 import time
 import pennylane as qml

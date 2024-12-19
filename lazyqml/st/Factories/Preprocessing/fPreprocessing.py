@@ -1,7 +1,7 @@
 # Importing from
-from lazyqml.Global.globalEnums import *
-from lazyqml.Factories.Preprocessing.Pca import *
-from lazyqml.Factories.Preprocessing.Sanitizer import *
+from lazyqml.st.Global.globalEnums import *
+from lazyqml.st.Factories.Preprocessing.Pca import *
+from lazyqml.st.Factories.Preprocessing.Sanitizer import *
 
 class PreprocessingFactory:
     def __init__(self, nqubits) -> None:

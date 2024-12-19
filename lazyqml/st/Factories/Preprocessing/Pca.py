@@ -1,5 +1,5 @@
 # Importing from
-from lazyqml.Interfaces.iPreprocessing import Preprocessing
+from lazyqml.st.Interfaces.iPreprocessing import Preprocessing
 from sklearn.decomposition import PCA
 
 class Pca(Preprocessing):

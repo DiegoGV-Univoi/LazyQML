@@ -7,7 +7,7 @@ import GPUtil
 
 # Importing from
 from sklearn.model_selection import LeaveOneOut, StratifiedKFold, train_test_split
-from lazyqml.Global.globalEnums import *
+from lazyqml.st.Global.globalEnums import *
 from itertools import product
 
 """

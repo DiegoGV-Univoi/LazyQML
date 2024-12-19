@@ -1,4 +1,4 @@
-from lazyqml.Interfaces.iCircuit import Circuit
+from lazyqml.st.Interfaces.iCircuit import Circuit
 import pennylane as qml
 
 class RxEmbedding(Circuit):

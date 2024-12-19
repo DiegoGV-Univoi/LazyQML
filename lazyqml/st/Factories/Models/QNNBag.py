@@ -2,12 +2,12 @@ import torch
 import pennylane as qml
 from time import time
 import numpy as np
-from lazyqml.Interfaces.iModel import Model
-from lazyqml.Interfaces.iAnsatz import Ansatz
-from lazyqml.Interfaces.iCircuit import Circuit
-from lazyqml.Factories.Circuits.fCircuits import *
-from lazyqml.Global.globalEnums import Backend
-from lazyqml.Utils.Utils import printer
+from lazyqml.st.Interfaces.iModel import Model
+from lazyqml.st.Interfaces.iAnsatz import Ansatz
+from lazyqml.st.Interfaces.iCircuit import Circuit
+from lazyqml.st.Factories.Circuits.fCircuits import *
+from lazyqml.st.Global.globalEnums import Backend
+from lazyqml.st.Utils.Utils import printer
 import warnings
 
 class QNNBag(Model):

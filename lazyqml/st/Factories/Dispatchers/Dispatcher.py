@@ -8,10 +8,10 @@ import torch
 
 # Importing from
     # Internal Dependencies 
-from lazyqml.Utils.Utils import *
-from lazyqml.Factories.Models.fModels import *
-from lazyqml.Factories.Preprocessing.fPreprocessing import *
-from lazyqml.Utils.Utils import printer
+from lazyqml.st.Utils.Utils import *
+from lazyqml.st.Factories.Models.fModels import *
+from lazyqml.st.Factories.Preprocessing.fPreprocessing import *
+from lazyqml.st.Utils.Utils import printer
     # External Libraries 
 from sklearn.metrics import f1_score, accuracy_score, balanced_accuracy_score
 from multiprocessing import Process, Pool, Manager
